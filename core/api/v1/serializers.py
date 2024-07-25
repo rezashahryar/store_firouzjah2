@@ -3,6 +3,7 @@ import requests
 import json
 
 from django.conf import settings
+from django.utils import timezone
 from rest_framework import serializers
 
 from core.models import OtpRequest
@@ -51,3 +52,19 @@ class CheckOtpSerializer(serializers.Serializer):
     id = serializers.UUIDField()
     otp_code = serializers.IntegerField()
     mobile = serializers.IntegerField()
+
+    def validate(self, attrs):
+        try:
+            otp_req = OtpRequest.objects.get(
+                id=attrs['id'],
+                otp_code=attrs['otp_code']
+            )
+
+            if otp_req.valid_until < timezone.now():
+                raise serializers.ValidationError("this code expired")
+        except OtpRequest.DoesNotExist:
+            ...
+        
+
+            
+        return attrs
