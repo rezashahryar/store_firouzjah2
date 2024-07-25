@@ -45,3 +45,9 @@ class RequestSendOtpSerializer(serializers.Serializer):
     
     def _random_code(self):
         return int(random.randint(10000, 99999))
+ 
+
+class CheckOtpSerializer(serializers.Serializer):
+    id = serializers.UUIDField()
+    otp_code = serializers.IntegerField()
+    mobile = serializers.IntegerField()
