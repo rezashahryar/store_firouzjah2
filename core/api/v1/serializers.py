@@ -15,9 +15,9 @@ class RequestSendOtpSerializer(serializers.Serializer):
     otp_code = serializers.CharField(read_only=True)
     mobile = serializers.CharField()
 
-    def create(self, validated_data):
+    def save(self, **kwargs):
         req_otp = OtpRequest.objects.create(
-            mobile=validated_data['mobile'],
+            mobile=self._validated_data['mobile'],
             otp_code=self._random_code()
         )
         req_otp.save()
