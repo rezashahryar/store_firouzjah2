@@ -149,6 +149,13 @@ INTERNAL_IPS = [
     "127.0.0.1",
 ]
 
+# rest framework settings
+REST_FRAMEWORK = {
+    'DEFAULT_AUTHENTICATION_CLASSES': [
+        'rest_framework.authentication.TokenAuthentication',
+    ]
+}
+
 
 SEND_OTP_CODE_FROM = config('SEND_OTP_CODE_FROM')
 WEB_SERVICE_OTP_PASSWORD = config('WEB_SERVICE_OTP_PASSWORD')
