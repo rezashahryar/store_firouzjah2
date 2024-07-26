@@ -15,6 +15,21 @@ class SubCategoryProduct(admin.ModelAdmin):
     ...
 
 
+@admin.register(models.Size)
+class SizeAdmin(admin.ModelAdmin):
+    ...
+
+
+@admin.register(models.Color)
+class ColorAdmin(admin.ModelAdmin):
+    ...
+
+
+@admin.register(models.Product)
+class ProductAdmin(admin.ModelAdmin):
+    ...
+
+
 @admin.register(models.ProductType)
 class ProductTypeAdmin(admin.ModelAdmin):
     ...
