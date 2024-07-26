@@ -23,6 +23,7 @@ from drf_yasg import openapi
 
 urlpatterns = [
     path('auth/', include('core.urls')),
+    path('store/', include('store.urls')),
     path('admin/', admin.site.urls),
 ]
 
