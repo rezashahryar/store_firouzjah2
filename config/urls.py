@@ -20,12 +20,14 @@ from django.urls import include, path
 from rest_framework import permissions
 from drf_yasg.views import get_schema_view
 from drf_yasg import openapi
+# for django debug toolbar
+from debug_toolbar.toolbar import debug_toolbar_urls
 
 urlpatterns = [
     path('auth/', include('core.urls')),
     path('store/', include('store.urls')),
     path('admin/', admin.site.urls),
-]
+] + debug_toolbar_urls()
 
 
 # for swagger
