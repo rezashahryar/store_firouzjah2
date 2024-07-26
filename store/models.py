@@ -146,6 +146,13 @@ class Product(models.Model):
     def __str__(self):
         return self.base_product.title_farsi
     
+    def save(self, *args, **kwargs):
+        self.slug = self.generate_unique_slug(self.base_product.title_farsi, self.color.name, self.size.size)
+        return super().save(*args, **kwargs)
+    
+    def generate_unique_slug(self, title, color, size):
+        return f'{self.base_product.title_farsi}-{self.color.name}-{self.size.size}'
+    
 
 class ProductImage(models.Model):
     product = models.ForeignKey(BaseProduct, on_delete=models.CASCADE, related_name='images')
