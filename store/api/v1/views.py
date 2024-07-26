@@ -9,6 +9,14 @@ from . import serializers
 
 
 class ProductListViewSet(mixins.ListModelMixin,
+                        mixins.RetrieveModelMixin,
                         GenericViewSet):
     queryset = models.Product.objects.all()
-    serializer_class = serializers.ProductListSerializer
+    lookup_field = 'slug'
+
+    def get_serializer_class(self):
+        if self.action == 'list':
+            return serializers.ProductListSerializer
+        elif self.action == 'retrieve':
+            return serializers.ProductDetailSerializer
+        return serializers.ProductListSerializer

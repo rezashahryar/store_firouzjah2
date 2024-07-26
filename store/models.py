@@ -4,7 +4,15 @@ from django.utils.translation import gettext_lazy as _
 # Create your models here.
 
 
+class ProductProperties(models.Model):
+    title = models.CharField(max_length=100)
+
+    def __str__(self):
+        return self.title
+
+
 class CategoryProduct(models.Model):
+    properties = models.ManyToManyField(ProductProperties, related_name='categories')
     name = models.CharField(max_length=255)
     slug = models.SlugField()
     logo = models.ImageField(upload_to='categories_logo/')
@@ -61,6 +69,7 @@ class BaseProduct(models.Model):
 
     title_farsi = models.CharField(max_length=255)
     title_english = models.CharField(max_length=255)
+    description = models.TextField(null=True)
 
     product_authenticity = models.CharField(max_length=2, choices=ProductAuthenticity.choices)
     product_warranty = models.BooleanField(default=True)
@@ -68,6 +77,15 @@ class BaseProduct(models.Model):
 
     def __str__(self):
         return self.title_farsi
+    
+
+class SetProductProperty(models.Model):
+    product = models.ForeignKey(BaseProduct, on_delete=models.CASCADE, related_name='properties')
+    property = models.ForeignKey(ProductProperties, on_delete=models.CASCADE)
+    value = models.CharField(max_length=250)
+
+    def __str__(self):
+        return f'property {self.property} for {self.product.title_farsi} with value {self.value}'
     
 
 class Size(models.Model):
@@ -90,7 +108,14 @@ class Product(models.Model):
         PAIR = 'pi', _('جفت')
         NUMBER = 'na', _('عددی')
 
+    class ProductStatus(models.TextChoices):
+        CONFIRM = 'c', _('تایید')
+        WAITING = 'w', _('در انتظار تایید')
+        NOT_CONFIRMED = 'n', _('عدم تایید')
+
     base_product = models.ForeignKey(BaseProduct, on_delete=models.CASCADE, related_name='products')
+
+    slug = models.SlugField(null=True)
 
     size = models.ForeignKey(Size, on_delete=models.CASCADE, related_name='products')
     color = models.ForeignKey(Color, on_delete=models.CASCADE, related_name='products')
@@ -113,6 +138,10 @@ class Product(models.Model):
 
     shenase_kala = models.CharField(max_length=14, null=True)
     barcode = models.CharField(max_length=16, null=True)
+
+    product_status = models.CharField(max_length=1, choices=ProductStatus.choices, default=ProductStatus.WAITING)
+
+    product_is_active = models.BooleanField(default=False)
 
     def __str__(self):
         return self.base_product.title_farsi

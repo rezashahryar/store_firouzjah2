@@ -27,6 +27,16 @@ class ColorAdmin(admin.ModelAdmin):
 
 @admin.register(models.Product)
 class ProductAdmin(admin.ModelAdmin):
+    prepopulated_fields = {"slug": ('base_product', )}
+
+
+@admin.register(models.ProductProperties)
+class ProductPropertiesAdmin(admin.ModelAdmin):
+    ...
+
+
+@admin.register(models.SetProductProperty)
+class SetProductPropertyAdmin(admin.ModelAdmin):
     ...
 
 
