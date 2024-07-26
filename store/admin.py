@@ -28,3 +28,8 @@ class BrandAdmin(admin.ModelAdmin):
 @admin.register(models.BaseProduct)
 class BaseProductAdmin(admin.ModelAdmin):
     ...
+
+
+@admin.register(models.ProductImage)
+class ProductImageAdmin(admin.ModelAdmin):
+    ...
