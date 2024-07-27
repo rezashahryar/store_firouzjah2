@@ -95,3 +95,8 @@ class ProductCommentAdmin(admin.ModelAdmin):
 @admin.register(models.ProductAnswerComment)
 class ProductAnswerCommentAdmin(admin.ModelAdmin):
     ...
+
+
+@admin.register(models.Customer)
+class CustomerAdmin(admin.ModelAdmin):
+    ...
