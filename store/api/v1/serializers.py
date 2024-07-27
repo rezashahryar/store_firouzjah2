@@ -1,4 +1,5 @@
 from rest_framework import serializers
+from django.contrib.auth import get_user_model
 
 from store import models
 
@@ -59,7 +60,18 @@ class BaseProductDetailAnswerCommentSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = models.ProductAnswerComment
-        fields = ['id', 'user', 'text', 'datetime_created']
+        fields = ['id', 'comment', 'user', 'text', 'datetime_created']
+        extra_kwargs = {
+            'comment': {'write_only': True}
+        }
+
+    def create(self, validated_data):
+        user_id = self.context['user_id']
+
+        return models.ProductAnswerComment.objects.create(
+            user_id=user_id,
+            **validated_data
+        )
 
 
 class BaseProductDetailCommentSerializer(serializers.ModelSerializer):

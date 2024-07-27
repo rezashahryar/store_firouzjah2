@@ -61,3 +61,12 @@ class CreateProductCommentApiView(generics.CreateAPIView):
 
     def get_serializer_context(self):
         return {'user_id': self.request.user.pk}
+    
+
+class CreateProductAnswerCommentApiView(generics.CreateAPIView):
+    queryset = models.ProductAnswerComment.objects.all()
+    serializer_class = serializers.BaseProductDetailAnswerCommentSerializer
+    permission_classes = [IsAuthenticated]
+
+    def get_serializer_context(self):
+        return {'user_id': self.request.user.pk}
