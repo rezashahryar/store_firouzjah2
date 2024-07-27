@@ -58,3 +58,13 @@ class BaseProductAdmin(admin.ModelAdmin):
 @admin.register(models.ProductImage)
 class ProductImageAdmin(admin.ModelAdmin):
     ...
+
+
+@admin.register(models.ProductComment)
+class ProductCommentAdmin(admin.ModelAdmin):
+    ...
+
+
+@admin.register(models.ProductAnswerComment)
+class ProductAnswerCommentAdmin(admin.ModelAdmin):
+    ...

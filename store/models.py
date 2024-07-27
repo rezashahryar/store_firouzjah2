@@ -1,5 +1,6 @@
 from django.db import models
 from django.utils.translation import gettext_lazy as _
+from django.conf import settings
 
 # Create your models here.
 
@@ -162,3 +163,20 @@ class ProductImage(models.Model):
 
     def __str__(self):
         return self.product.title_farsi
+    
+
+class ProductComment(models.Model):
+    user = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE, related_name='comments')
+    product = models.ForeignKey(BaseProduct, on_delete=models.CASCADE, related_name='comments')
+
+    text = models.TextField()
+
+    datetime_created = models.DateTimeField(auto_now_add=True)
+
+
+class ProductAnswerComment(models.Model):
+    comment = models.ForeignKey(ProductComment, on_delete=models.CASCADE, related_name='answers')
+    user = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE, related_name='answers_comments')
+
+    text = models.TextField()
+    datetime_created = models.DateTimeField(auto_now_add=True)

@@ -54,8 +54,26 @@ class ProductPropertySerializer(serializers.ModelSerializer):
         fields = ['property', 'value']
 
 
+class BaseProductDetailAnswerCommentSerializer(serializers.ModelSerializer):
+    user = serializers.StringRelatedField()
+
+    class Meta:
+        model = models.ProductAnswerComment
+        fields = ['id', 'user', 'text', 'datetime_created']
+
+
+class BaseProductDetailCommentSerializer(serializers.ModelSerializer):
+    user = serializers.StringRelatedField()
+    answers = BaseProductDetailAnswerCommentSerializer(many=True)
+    
+    class Meta:
+        model = models.ProductComment
+        fields = ['id', 'user', 'text', 'datetime_created', 'answers']
+
+
 class BaseProductDetailSerializer(serializers.ModelSerializer):
     properties = ProductPropertySerializer(many=True)
+    comments = BaseProductDetailCommentSerializer(many=True)
     
     category = serializers.StringRelatedField()
     sub_category = serializers.StringRelatedField()
@@ -68,7 +86,7 @@ class BaseProductDetailSerializer(serializers.ModelSerializer):
         fields = [
             'id', 'category', 'sub_category', 'product_type', 'product_code', 'brand',
             'title_farsi', 'title_english', 'description', 'product_authenticity', 'product_warranty',
-            'sending_method', 'properties'
+            'sending_method', 'properties', 'comments'
         ]
 
 

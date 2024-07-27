@@ -35,6 +35,13 @@ class ProductListViewSet(mixins.ListModelMixin,
                         .select_related('size').select_related('color').prefetch_related(Prefetch(
                             'base_product__properties',
                             queryset=models.SetProductProperty.objects.select_related('property')
+                        )).prefetch_related(Prefetch(
+                            'base_product__comments',
+                            queryset=models.ProductComment.objects.select_related('user') \
+                                .prefetch_related(Prefetch(
+                                    'answers',
+                                    queryset=models.ProductAnswerComment.objects.select_related('user')
+                                ))
                         )).all()
 
     def get_serializer_class(self):
