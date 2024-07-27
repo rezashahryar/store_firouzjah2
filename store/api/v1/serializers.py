@@ -127,3 +127,86 @@ class ProductDetailSerializer(serializers.ModelSerializer):
             'start_discount', 'end_discount', 'length_package', 'width_package', 'height_package', 'weight_package',
             'shenase_kala', 'barcode',
         ]
+
+
+class UpdateCartItemSerializer(serializers.ModelSerializer):
+
+    class Meta:
+        model = models.CartItem
+        fields = ['quantity']
+
+
+class AddCartItemSerializer(serializers.ModelSerializer):
+
+    class Meta:
+        model = models.CartItem
+        fields = ['id', 'product', 'quantity']
+
+    def create(self, validated_data):
+        cart_pk = self.context['cart_pk']
+
+        product = validated_data.get('product')
+        quantity = validated_data.get('quantity')
+
+        try:
+            cart_item = models.CartItem.objects.get(cart_id=cart_pk, product_id=product.pk)
+            cart_item.quantity += quantity
+            cart_item.save()
+        except models.CartItem.DoesNotExist:
+            cart_item = models.CartItem.objects.create(cart_id=cart_pk,**validated_data)
+
+        # if models.CartItem.objects.filter(cart_id=cart_pk, product_id=product.pk).exists():
+        #     cart_item = models.CartItem.objects.get(cart_id=cart_pk, product_id=product.pk)
+        #     cart_item.quantity += quantity
+        #     cart_item.save()
+        # else:
+        #     cart_item = models.CartItem.objects.create(cart_id=cart_pk,**validated_data)
+        
+        self.instance = cart_item
+
+        return cart_item
+
+
+class CartItemBaseProductSerializer(serializers.ModelSerializer):
+
+    class Meta:
+        model = models.BaseProduct
+        fields = ['title_farsi']
+
+
+class CartItemProductSerializer(serializers.ModelSerializer):
+
+    class Meta:
+        model = models.Product
+        fields = ['id', 'base_product', 'price', 'price_after_discount']
+
+    def to_representation(self, instance):
+        rep = super().to_representation(instance)
+        rep['base_product'] = CartItemBaseProductSerializer(instance.base_product).data
+
+        return rep
+
+
+class CartItemSerializer(serializers.ModelSerializer):
+    product = CartItemProductSerializer()
+    total_price_item = serializers.SerializerMethodField()
+
+    class Meta:
+        model = models.CartItem
+        fields = ['id', 'product', 'quantity', 'total_price_item']
+
+    def get_total_price_item(self, cart_item):
+        return cart_item.quantity * cart_item.product.price
+
+
+class CartSerializer(serializers.ModelSerializer):
+    items = CartItemSerializer(many=True, read_only=True)
+    total_price_of_cart = serializers.SerializerMethodField()
+
+    class Meta:
+        model = models.Cart
+        fields = ['id', 'items', 'total_price_of_cart']
+        read_only_fields = ['id']
+
+    def get_total_price_of_cart(self, cart):
+        return sum(item.product.price * item.quantity for item in cart.items.all())

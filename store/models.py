@@ -1,3 +1,5 @@
+from uuid import uuid4
+
 from django.db import models
 from django.utils.translation import gettext_lazy as _
 from django.conf import settings
@@ -23,6 +25,7 @@ class CategoryProduct(models.Model):
 
 
 class SubCategoryProduct(models.Model):
+    category = models.ForeignKey(CategoryProduct, on_delete=models.CASCADE, related_name='sub_categories', null=True)
     name = models.CharField(max_length=255)
     slug = models.SlugField()
     logo = models.ImageField(upload_to='sub_categories_logo/')
@@ -146,14 +149,14 @@ class Product(models.Model):
     product_is_active = models.BooleanField(default=False)
 
     def __str__(self):
-        return self.base_product.title_farsi
+        return f'{self.base_product.title_farsi} - {self.color} - {self.size}'
     
     def save(self, *args, **kwargs):
         self.slug = self.generate_unique_slug(self.base_product.title_farsi, self.color.name, self.size.size)
         return super().save(*args, **kwargs)
     
     def generate_unique_slug(self, title, color, size):
-        return f'{self.base_product.title_farsi}-{self.color.name}-{self.size.size}'
+        return f'{title}-{color}-{size}'
     
 
 class ProductImage(models.Model):
@@ -180,3 +183,17 @@ class ProductAnswerComment(models.Model):
 
     text = models.TextField()
     datetime_created = models.DateTimeField(auto_now_add=True)
+
+
+class Cart(models.Model):
+    id = models.UUIDField(primary_key=True, default=uuid4)
+    created_at = models.DateTimeField(auto_now_add=True)
+
+
+class CartItem(models.Model):
+    cart = models.ForeignKey(Cart, on_delete=models.CASCADE, related_name='items')
+    product = models.ForeignKey(Product, on_delete=models.CASCADE, related_name='cart_items')
+    quantity = models.PositiveIntegerField()
+
+    class Meta:
+        unique_together = [['cart', 'product']]

@@ -1,5 +1,5 @@
 from django.db.models import Prefetch
-from rest_framework.viewsets import GenericViewSet
+from rest_framework.viewsets import GenericViewSet, ModelViewSet
 from rest_framework import mixins
 from rest_framework.response import Response
 from rest_framework import generics
@@ -70,3 +70,32 @@ class CreateProductAnswerCommentApiView(generics.CreateAPIView):
 
     def get_serializer_context(self):
         return {'user_id': self.request.user.pk}
+    
+
+class CartViewSet(mixins.CreateModelMixin,
+                mixins.RetrieveModelMixin,
+                mixins.DestroyModelMixin,
+                GenericViewSet):
+    serializer_class = serializers.CartSerializer
+    queryset = models.Cart.objects.prefetch_related(Prefetch(
+            'items',
+            queryset=models.CartItem.objects.select_related('product__base_product')
+        )).all()
+
+
+class CartItemViewSet(ModelViewSet):
+    http_method_names = ['get', 'post', 'patch', 'delete', 'head', 'options']
+
+    def get_serializer_context(self):
+        return {'cart_pk': self.kwargs['cart_pk']}
+
+    def get_serializer_class(self):
+        if self.request.method == 'POST':
+            return serializers.AddCartItemSerializer
+        elif self.request.method == 'PATCH':
+            return serializers.UpdateCartItemSerializer
+        return serializers.CartItemSerializer
+    
+    def get_queryset(self):
+        cart_pk = self.kwargs['cart_pk']
+        return models.CartItem.objects.filter(cart_id=cart_pk).select_related('product__base_product').all()
