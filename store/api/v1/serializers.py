@@ -1,4 +1,5 @@
 from rest_framework import serializers
+from django.db.models import Prefetch
 
 from store import models
 
@@ -136,6 +137,10 @@ class UpdateCartItemSerializer(serializers.ModelSerializer):
 
 
 class AddCartItemSerializer(serializers.ModelSerializer):
+    product = serializers.PrimaryKeyRelatedField(
+        queryset=models.Product.objects.select_related('base_product').select_related('size') \
+            .select_related('color')
+    )
 
     class Meta:
         model = models.CartItem
@@ -164,26 +169,41 @@ class AddCartItemSerializer(serializers.ModelSerializer):
         self.instance = cart_item
 
         return cart_item
+    
+
+class CartItemBaseProductImageSerializer(serializers.ModelSerializer):
+
+    class Meta:
+        model = models.ProductImage
+        fields = ['image']
 
 
 class CartItemBaseProductSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = models.BaseProduct
-        fields = ['title_farsi']
-
-
-class CartItemProductSerializer(serializers.ModelSerializer):
-
-    class Meta:
-        model = models.Product
-        fields = ['id', 'base_product', 'price', 'price_after_discount']
+        fields = ['title_farsi', 'images']
 
     def to_representation(self, instance):
         rep = super().to_representation(instance)
-        rep['base_product'] = CartItemBaseProductSerializer(instance.base_product).data
+        image = models.ProductImage.objects.get(product_id=instance.pk, is_cover=True)
+        rep['images'] = CartItemBaseProductImageSerializer(image).data
 
         return rep
+
+
+class CartItemProductSerializer(serializers.ModelSerializer):
+    base_product = CartItemBaseProductSerializer()
+
+    class Meta:
+        model = models.Product
+        fields = ['id', 'base_product', 'slug', 'price', 'price_after_discount']
+
+    # def to_representation(self, instance):
+    #     rep = super().to_representation(instance)
+        # rep['base_product'] = CartItemBaseProductSerializer(instance.base_product).data
+
+        # return rep
 
 
 class CartItemSerializer(serializers.ModelSerializer):

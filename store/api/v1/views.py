@@ -78,9 +78,10 @@ class CartViewSet(mixins.CreateModelMixin,
                 GenericViewSet):
     serializer_class = serializers.CartSerializer
     queryset = models.Cart.objects.prefetch_related(Prefetch(
-            'items',
-            queryset=models.CartItem.objects.select_related('product__base_product')
-        )).all()
+        'items',
+        queryset=models.CartItem.objects.select_related('product__base_product') \
+            .prefetch_related('product__base_product__images')
+    ))
 
 
 class CartItemViewSet(ModelViewSet):
@@ -98,4 +99,11 @@ class CartItemViewSet(ModelViewSet):
     
     def get_queryset(self):
         cart_pk = self.kwargs['cart_pk']
-        return models.CartItem.objects.filter(cart_id=cart_pk).select_related('product__base_product').all()
+        return models.CartItem.objects.filter(cart_id=cart_pk).select_related('product') \
+            .select_related('product__base_product').prefetch_related('product__base_product__images').all()
+    
+    
+    
+    
+    # .select_related('product__base_product').select_related('product__size') \
+    #         .prefetch_related('product__base_product__images').all()

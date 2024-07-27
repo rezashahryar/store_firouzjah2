@@ -22,6 +22,9 @@ from drf_yasg.views import get_schema_view
 from drf_yasg import openapi
 # for django debug toolbar
 from debug_toolbar.toolbar import debug_toolbar_urls
+# for display statis
+from django.conf import settings
+from django.conf.urls.static import static
 
 urlpatterns = [
     path('auth/', include('core.urls')),
