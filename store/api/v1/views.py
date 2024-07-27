@@ -2,6 +2,8 @@ from django.db.models import Prefetch
 from rest_framework.viewsets import GenericViewSet
 from rest_framework import mixins
 from rest_framework.response import Response
+from rest_framework import generics
+from rest_framework.permissions import IsAuthenticated
 
 from store import models
 
@@ -50,3 +52,12 @@ class ProductListViewSet(mixins.ListModelMixin,
         elif self.action == 'retrieve':
             return serializers.ProductDetailSerializer
         return serializers.ProductListSerializer
+    
+
+class CreateProductCommentApiView(generics.CreateAPIView):
+    queryset = models.ProductComment.objects.all()
+    serializer_class = serializers.BaseProductDetailCommentSerializer
+    permission_classes = [IsAuthenticated]
+
+    def get_serializer_context(self):
+        return {'user_id': self.request.user.pk}

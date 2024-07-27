@@ -64,11 +64,22 @@ class BaseProductDetailAnswerCommentSerializer(serializers.ModelSerializer):
 
 class BaseProductDetailCommentSerializer(serializers.ModelSerializer):
     user = serializers.StringRelatedField()
-    answers = BaseProductDetailAnswerCommentSerializer(many=True)
+    answers = BaseProductDetailAnswerCommentSerializer(many=True, read_only=True)
     
     class Meta:
         model = models.ProductComment
-        fields = ['id', 'user', 'text', 'datetime_created', 'answers']
+        fields = ['id', 'user', 'product', 'text', 'datetime_created', 'answers']
+        extra_kwargs = {
+            'product': {'write_only': True}
+        }
+
+    def create(self, validated_data):
+        user_id = self.context['user_id']
+
+        return models.ProductComment.objects.create(
+            user_id=user_id,
+            **validated_data
+        )
 
 
 class BaseProductDetailSerializer(serializers.ModelSerializer):
