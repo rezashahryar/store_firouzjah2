@@ -97,6 +97,7 @@ class Size(models.Model):
 
 class Color(models.Model):
     name = models.CharField(max_length=255)
+    code_of_color = models.CharField(max_length=16, null=True)
 
     def __str__(self):
         return self.name

@@ -1,6 +1,7 @@
 from django.db.models import Prefetch
 from rest_framework.viewsets import GenericViewSet
 from rest_framework import mixins
+from rest_framework.response import Response
 
 from store import models
 
@@ -13,6 +14,15 @@ class ProductListViewSet(mixins.ListModelMixin,
                         mixins.RetrieveModelMixin,
                         GenericViewSet):
     lookup_field = 'slug'
+
+    def retrieve(self, request, *args, **kwargs):
+        instance = self.get_object()
+        serializer = self.get_serializer(instance)
+        colors = models.Color.objects.filter(products__base_product=instance.base_product).values('products__slug', 'products__color')
+        return Response({
+            'product_colors': serializers.ColorSerializer(colors, many=True, context={'instance_pk': instance.pk}).data,
+            'product': serializer.data,
+        })
 
     def get_queryset(self):
         if self.action == 'list':

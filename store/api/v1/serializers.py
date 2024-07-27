@@ -4,6 +4,31 @@ from store import models
 
 # create your serializers here
 
+class ProductSlugSerializer(serializers.Serializer):
+    slug = serializers.Serializer()
+
+
+class ColorSerializer(serializers.ModelSerializer):
+    slug = serializers.SerializerMethodField()
+    color = serializers.SerializerMethodField()
+    code_of_color = serializers.SerializerMethodField()
+
+    class Meta:
+        model = models.Product
+        fields = ['color', 'code_of_color', 'slug']
+
+    def get_color(self, product):
+        global color
+        color = models.Color.objects.get(pk=product['products__color'])
+        return color.name
+    
+    def get_code_of_color(self, product):
+
+        return color.code_of_color
+
+    def get_slug(self, product):
+        return product['products__slug']
+
 
 class BaseProductListSerializer(serializers.ModelSerializer):
     category = serializers.StringRelatedField()
