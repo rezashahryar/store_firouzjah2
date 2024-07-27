@@ -1,5 +1,4 @@
 from rest_framework import serializers
-from django.contrib.auth import get_user_model
 
 from store import models
 
@@ -202,11 +201,29 @@ class CartItemSerializer(serializers.ModelSerializer):
 class CartSerializer(serializers.ModelSerializer):
     items = CartItemSerializer(many=True, read_only=True)
     total_price_of_cart = serializers.SerializerMethodField()
+    amount_discount = serializers.SerializerMethodField()
+    amount_payable = serializers.SerializerMethodField()
 
     class Meta:
         model = models.Cart
-        fields = ['id', 'items', 'total_price_of_cart']
+        fields = ['id', 'items', 'total_price_of_cart', 'amount_discount', 'amount_payable']
         read_only_fields = ['id']
 
     def get_total_price_of_cart(self, cart):
         return sum(item.product.price * item.quantity for item in cart.items.all())
+    
+    def get_amount_discount(self, cart):
+        amount_discount = 0
+        for item in cart.items.all():
+            if item.product.price_after_discount:
+                amount_discount = sum(item.product.price_after_discount * item.quantity for item in cart.items.all())
+        return amount_discount
+    
+    def get_amount_payable(self, cart):
+        result = None
+        for item in cart.items.all():
+            if item.product.discount_percent:
+                result = self.get_total_price_of_cart(cart) - sum(item.quantity * item.product.price_after_discount for item in cart.items.all())
+                return result
+            result = self.get_total_price_of_cart(cart) - sum(item.quantity * item.product.price for item in cart.items.all())
+        return result
