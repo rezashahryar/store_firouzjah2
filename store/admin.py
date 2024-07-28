@@ -100,3 +100,35 @@ class ProductAnswerCommentAdmin(admin.ModelAdmin):
 @admin.register(models.Customer)
 class CustomerAdmin(admin.ModelAdmin):
     ...
+
+
+@admin.register(models.Province)
+class ProvinceAdmin(admin.ModelAdmin):
+    ...
+
+
+@admin.register(models.City)
+class CityAdmin(admin.ModelAdmin):
+    ...
+
+
+@admin.register(models.Neighbourhood)
+class NeighbourhoodAdmin(admin.ModelAdmin):
+    ...
+
+
+class OrderItemTabular(admin.TabularInline):
+    model = models.OrderItem
+    fields = ['product', 'quantity', 'price']
+
+
+@admin.register(models.Order)
+class OrderAdmin(admin.ModelAdmin):
+    inlines = [
+        OrderItemTabular
+    ]
+
+
+@admin.register(models.OrderItem)
+class OrderItemAdmin(admin.ModelAdmin):
+    ...

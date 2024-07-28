@@ -3,7 +3,7 @@ from rest_framework.viewsets import GenericViewSet, ModelViewSet
 from rest_framework import mixins
 from rest_framework.response import Response
 from rest_framework import generics
-from rest_framework.permissions import IsAuthenticated
+from rest_framework.permissions import IsAuthenticated, IsAdminUser
 
 from store import models
 
@@ -102,8 +102,44 @@ class CartItemViewSet(ModelViewSet):
         return models.CartItem.objects.filter(cart_id=cart_pk).select_related('product') \
             .select_related('product__base_product').prefetch_related('product__base_product__images').all()
     
+
+class OrderViewSet(ModelViewSet):
+    http_method_names = ['get', 'post', 'patch', 'delete', 'head', 'options']
+
+    def get_permissions(self):
+        if self.request.method in ['PATCH', 'DELETE']:
+            return [IsAdminUser()]
+        return [IsAuthenticated()]
+
+    def create(self, request, *args, **kwargs):
+        create_order_serializer = serializers.CreateOrderSerializer(data=request.data,
+                                                                    context={'user_id': request.user.pk}
+                                                                )
+        create_order_serializer.is_valid(raise_exception=True)
+        created_order = create_order_serializer.save()
+        serializer = serializers.OrderForUserSerializer(created_order)
+        return Response(serializer.data)
+
+
+    def get_serializer_class(self):
+        if self.request.method == 'POST':
+            return serializers.CreateOrderSerializer
+        if self.request.user.is_staff:
+            return serializers.OrderForAdminSerializer
+        return serializers.OrderForUserSerializer
+
+    def get_queryset(self):
+        queryset = models.Order.objects.select_related('customer__user').prefetch_related(Prefetch(
+            'items',
+            queryset=models.OrderItem.objects.select_related('product__base_product')
+        )).all()
+
+        user = self.request.user
+
+        if user.is_staff:
+            return queryset
+        
+        return queryset.filter(customer__user_id=user.pk)
     
-    
-    
-    # .select_related('product__base_product').select_related('product__size') \
-    #         .prefetch_related('product__base_product__images').all()
+    def get_serializer_context(self):
+        return {'user_id': self.request.user.pk}

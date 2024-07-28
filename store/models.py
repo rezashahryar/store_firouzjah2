@@ -7,6 +7,29 @@ from django.conf import settings
 # Create your models here.
 
 
+class Province(models.Model):
+    name = models.CharField(max_length=255)
+
+    def __str__(self):
+        return self.name
+    
+
+class City(models.Model):
+    province = models.ForeignKey(Province, on_delete=models.CASCADE, related_name='cities')
+    name = models.CharField(max_length=255)
+
+    def __str__(self):
+        return self.name
+    
+
+class Neighbourhood(models.Model):
+    city = models.ForeignKey(City, on_delete=models.CASCADE, related_name='neighbourhoods')
+    name = models.CharField(max_length=255)
+
+    def __str__(self):
+        return self.name
+
+
 class ProductProperties(models.Model):
     title = models.CharField(max_length=100)
 
@@ -201,3 +224,38 @@ class CartItem(models.Model):
 
 class Customer(models.Model):
     user = models.OneToOneField(settings.AUTH_USER_MODEL, on_delete=models.CASCADE, related_name='customer')
+
+
+class Order(models.Model):
+
+    class OrderStatus(models.TextChoices):
+        UNPAID = 'u', _('پرداخت نشده')
+        CANCELED = 'c', _('کنسل شده')
+        PAID = 'p', _('پرداخت شده')
+
+    customer = models.ForeignKey(Customer, on_delete=models.CASCADE, related_name='orders')
+
+    receiver_full_name = models.CharField(max_length=255)
+    receiver_mobile = models.CharField(max_length=11)
+    province = models.ForeignKey(Province, on_delete=models.CASCADE, related_name='orders')
+    city = models.ForeignKey(City, on_delete=models.CASCADE, related_name='orders')
+    neighbourhood = models.ForeignKey(Neighbourhood, on_delete=models.CASCADE, related_name='orders')
+    region = models.CharField(max_length=255)
+    house_num = models.CharField(max_length=55)
+
+    vahed = models.CharField(max_length=3)
+    post_code = models.CharField(max_length=10)
+    identification_code = models.CharField(max_length=55)
+
+    datetime_created = models.DateTimeField(auto_now_add=True)
+    status = models.CharField(max_length=1, choices=OrderStatus.choices, default=OrderStatus.UNPAID)
+
+
+class OrderItem(models.Model):
+    order = models.ForeignKey(Order, on_delete=models.CASCADE, related_name='items')
+    product = models.ForeignKey(Product, on_delete=models.CASCADE, related_name='order_items')
+    quantity = models.PositiveIntegerField()
+    price = models.IntegerField()
+
+    class Meta:
+        unique_together = [['order', 'product']]

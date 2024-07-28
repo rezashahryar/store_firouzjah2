@@ -1,5 +1,5 @@
 from rest_framework import serializers
-from django.db.models import Prefetch
+from django.db import transaction
 
 from store import models
 
@@ -247,3 +247,128 @@ class CartSerializer(serializers.ModelSerializer):
                 return result
             result = self.get_total_price_of_cart(cart) - sum(item.quantity * item.product.price for item in cart.items.all())
         return result
+    
+
+class OrderItemProductSerializer(serializers.ModelSerializer):
+    title = serializers.CharField(source='base_product.title_farsi')
+
+    class Meta:
+        model = models.Product
+        fields = ['id', 'title', 'price']
+    
+
+class OrderItemSerializer(serializers.ModelSerializer):
+    product = OrderItemProductSerializer()
+
+    class Meta:
+        model = models.OrderItem
+        fields = ['id', 'product', 'quantity', 'price']
+
+
+class OrderCustomerSerializer(serializers.ModelSerializer):
+    mobile = serializers.CharField(source='user.mobile')
+
+    class Meta:
+        model = models.Customer
+        fields = ['mobile']
+    
+
+class OrderForAdminSerializer(serializers.ModelSerializer):
+    items = OrderItemSerializer(many=True)
+
+    status = serializers.CharField(source='get_status_display')
+    customer = OrderCustomerSerializer()
+
+    class Meta:
+        model = models.Order
+        fields = ['id', 'customer', 'status', 'datetime_created', 'items']
+
+
+class OrderForUserSerializer(serializers.ModelSerializer):
+    items = OrderItemSerializer(many=True)
+
+    status = serializers.CharField(source='get_status_display')
+
+    class Meta:
+        model = models.Order
+        fields = ['id', 'status', 'datetime_created', 'items']
+
+
+class CreateOrderSerializer(serializers.Serializer):
+    cart_id = serializers.UUIDField()
+    receiver_full_name = serializers.CharField(max_length=255)
+    receiver_mobile = serializers.IntegerField()
+    province = serializers.IntegerField()
+    city = serializers.IntegerField()
+    neighbourhood = serializers.IntegerField()
+    region = serializers.CharField()
+    house_num = serializers.IntegerField()
+    vahed = serializers.IntegerField()
+    post_code = serializers.IntegerField()
+    identification_code = serializers.IntegerField()
+
+    def validate_cart_id(self, cart_id):
+        print(cart_id)
+        try:
+            if models.Cart.objects.prefetch_related('items').get(id=cart_id).items.count() == 0:
+                raise serializers.ValidationError('your cart is empty')
+        except models.Cart.DoesNotExist:
+            raise serializers.ValidationError('there is not cart with this cart id')
+
+        # if not models.Cart.objects.filter(id=cart_id).exists():
+        #     raise serializers.ValidationError('there is not cart with this cart id')
+        
+        # if models.CartItem.objects.filter(cart_id=cart_id).count() == 0:
+        #     raise serializers.ValidationError('your cart is empty')
+        
+        return cart_id
+    
+    def save(self, **kwargs):
+        with transaction.atomic():
+            data = self.validated_data
+
+            cart_id = data['cart_id']
+            user_id = self.context['user_id']
+
+            customer = models.Customer.objects.get(user_id=user_id)
+
+            order = models.Order(
+                customer=customer,
+                receiver_full_name=data['receiver_full_name'],
+                receiver_mobile=data['receiver_mobile'],
+                province_id=data['province'],
+                city_id=data['city'],
+                neighbourhood_id=data['neighbourhood'],
+                region=data['region'],
+                house_num=data['house_num'],
+                vahed=data['vahed'],
+                post_code=data['post_code'],
+                identification_code=data['identification_code'],
+            )
+            order.save()
+
+            cart_items = models.CartItem.objects.select_related('product').filter(cart_id=cart_id)
+
+            order_items = [
+                models.OrderItem(
+                    order=order,
+                    product_id=cart_item.product_id,
+                    price=cart_item.product.price,
+                    quantity=cart_item.quantity
+                ) for cart_item in cart_items
+            ]
+
+            # order_items = list()
+            # for cart_item in cart_items:
+            #     order_item = models.OrderItem()
+            #     order_item.order = order
+            #     order_item.product_id = cart_item.product_id
+            #     order_item.price = cart_item.product.price
+            #     order_item.quantity = cart_item.quantity
+            #     order_items.append(order_item)
+
+            models.OrderItem.objects.bulk_create(order_items)
+
+            models.Cart.objects.get(id=cart_id).delete()
+
+            return order
