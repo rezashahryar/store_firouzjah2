@@ -132,3 +132,18 @@ class OrderAdmin(admin.ModelAdmin):
 @admin.register(models.OrderItem)
 class OrderItemAdmin(admin.ModelAdmin):
     ...
+
+
+@admin.register(models.Store)
+class StoreAdmin(admin.ModelAdmin):
+    ...
+
+
+@admin.register(models.HaghighyStore)
+class HaghighyStoreAdmin(admin.ModelAdmin):
+    ...
+
+
+@admin.register(models.HoghoughyStore)
+class HoghoughyStoreAdmin(admin.ModelAdmin):
+    ...

@@ -1,3 +1,5 @@
+import random
+
 from uuid import uuid4
 
 from django.db import models
@@ -28,6 +30,79 @@ class Neighbourhood(models.Model):
 
     def __str__(self):
         return self.name
+    
+
+def random_code_store():
+
+    while True:
+        code = random.randint(100000, 999999)
+
+        if Store.objects.filter(code=code).exists():
+            continue
+        return code
+
+
+class Store(models.Model):
+
+    class StoreType(models.TextChoices):
+        HAGHIGHY = "ha", _("حقیقی")
+        HOGHOUGHY = "ho", _("حقوقی")
+
+    name = models.CharField(max_length=255, null=True, blank=True)
+    mobile_number = models.CharField(max_length=11)
+    phone_number = models.CharField(max_length=11)
+    email = models.EmailField()
+    code = models.CharField(max_length=6, unique=True, default=random_code_store)
+    
+    shomare_shaba = models.CharField(max_length=26)
+
+    province = models.ForeignKey(Province, on_delete=models.CASCADE, related_name='stores')
+    city = models.ForeignKey(City, on_delete=models.CASCADE, related_name='stores')
+    mantaghe = models.ForeignKey(Neighbourhood, on_delete=models.CASCADE, related_name='stores')
+    mahalle = models.CharField(max_length=255)
+
+    address = models.CharField(max_length=555)
+    post_code = models.CharField(max_length=10)
+
+    parvane_kasb = models.FileField(upload_to='parvane_kasb__/%Y/%m/%d/')
+    tasvire_personely = models.ImageField(upload_to='tasvire_personely__/%Y/%m/%d/')
+    kart_melli = models.ImageField(upload_to='kart_melli__/%Y/%m/%d/')
+    shenasname = models.ImageField(upload_to='tasvire_shenasname__/%Y/%m/%d/')
+    logo = models.ImageField(upload_to='logo__/%Y/%m/%d/')
+    roozname_rasmi_alamat = models.FileField(upload_to='roozname_rasmi_alamat__/%Y/%m/%d/')
+
+    gharardad = models.FileField(upload_to='gharardad__/%Y/%m/%d/')
+
+    store_type = models.CharField(max_length=2, choices=StoreType.choices)
+
+    def __str__(self):
+
+        if self.name:
+            return str(self.name)
+        else:
+            return str(self.mobile_number)
+
+
+class HaghighyStore(Store):
+    full_name = models.CharField(max_length=255)
+    birth_date = models.DateField()
+    name_father = models.CharField(max_length=255)
+    code_melli = models.CharField(max_length=10, unique=True)
+    shomare_shenasname = models.CharField(max_length=255)
+
+    def __str__(self):
+        return str(self.full_name)
+
+
+class HoghoughyStore(Store):
+    ceo_name = models.CharField(max_length=255)
+    company_name = models.CharField(max_length=255)
+    date_of_registration = models.DateField()
+    num_of_registration = models.CharField(max_length=255)
+    economic_code = models.CharField(max_length=255)
+
+    def __str__(self):
+        return self.company_name
 
 
 class ProductProperties(models.Model):
