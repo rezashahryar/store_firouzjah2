@@ -134,6 +134,16 @@ class OrderItemAdmin(admin.ModelAdmin):
     ...
 
 
+@admin.register(models.OrderDate)
+class OrderDateAdmin(admin.ModelAdmin):
+    ...
+
+
+@admin.register(models.OrderTime)
+class OrderTimeAdmin(admin.ModelAdmin):
+    ...
+
+
 @admin.register(models.Store)
 class StoreAdmin(admin.ModelAdmin):
     ...

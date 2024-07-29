@@ -300,6 +300,25 @@ class CartItem(models.Model):
 class Customer(models.Model):
     user = models.OneToOneField(settings.AUTH_USER_MODEL, on_delete=models.CASCADE, related_name='customer')
 
+    def __str__(self):
+        return self.user.mobile
+    
+
+class OrderDate(models.Model):
+    date = models.DateField()
+    status = models.BooleanField(default=True)
+
+    def __str__(self):
+        return self.date
+    
+
+class OrderTime(models.Model):
+    time = models.TimeField()
+    status = models.BooleanField(default=True)
+
+    def __str__(self):
+        return self.time
+
 
 class Order(models.Model):
 
@@ -309,6 +328,9 @@ class Order(models.Model):
         PAID = 'p', _('پرداخت شده')
 
     customer = models.ForeignKey(Customer, on_delete=models.CASCADE, related_name='orders')
+
+    date = models.ForeignKey(OrderDate, on_delete=models.SET_NULL, null=True, related_name='orders')
+    time = models.ForeignKey(OrderTime, on_delete=models.SET_NULL, null=True, related_name='orders')
 
     receiver_full_name = models.CharField(max_length=255)
     receiver_mobile = models.CharField(max_length=11)
