@@ -64,7 +64,5 @@ class CheckOtpSerializer(serializers.Serializer):
                 raise serializers.ValidationError("this code expired")
         except OtpRequest.DoesNotExist:
             ...
-        
 
-            
         return attrs
