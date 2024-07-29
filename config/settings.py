@@ -51,6 +51,7 @@ INSTALLED_APPS = [
     # local apps
     'core.apps.CoreConfig',
     'store.apps.StoreConfig',
+    'user_panel.apps.UserPanelConfig',
 ]
 
 MIDDLEWARE = [
