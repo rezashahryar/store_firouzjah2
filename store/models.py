@@ -228,8 +228,8 @@ class Product(models.Model):
     unit = models.CharField(max_length=2, choices=ProductUnit.choices)
 
     price = models.IntegerField()
-    price_after_discount = models.IntegerField()
-    discount_percent = models.PositiveIntegerField()
+    price_after_discount = models.IntegerField(null=True, blank=True)
+    discount_percent = models.PositiveIntegerField(null=True, blank=True)
 
     start_discount = models.DateTimeField()
     end_discount = models.DateTimeField()
@@ -250,11 +250,11 @@ class Product(models.Model):
         return f'{self.base_product.title_farsi} - {self.color} - {self.size}'
     
     def save(self, *args, **kwargs):
-        self.slug = self.generate_unique_slug(self.base_product.title_farsi, self.color.name, self.size.size)
+        self.slug = self.generate_unique_slug(self.pk, self.color.name, self.size.size)
         return super().save(*args, **kwargs)
     
-    def generate_unique_slug(self, title, color, size):
-        return f'{title}-{color}-{size}'
+    def generate_unique_slug(self, id, color, size):
+        return f'{id}--{color}--{size}'
     
 
 class ProductImage(models.Model):
@@ -287,6 +287,18 @@ class Cart(models.Model):
     id = models.UUIDField(primary_key=True, default=uuid4)
     created_at = models.DateTimeField(auto_now_add=True)
 
+    def get_total_price_of_cart(self):
+        return sum(item.product.price * item.quantity for item in self.items.all())
+
+    def get_amount_payable(self):
+        result = None
+        for item in self.items.all():
+            if item.product.discount_percent and item.product.price_after_discount:
+                result = self.get_total_price_of_cart() - sum(item.quantity * item.product.price_after_discount for item in self.items.all())
+                return result
+            result = self.get_total_price_of_cart()
+        return result
+
 
 class CartItem(models.Model):
     cart = models.ForeignKey(Cart, on_delete=models.CASCADE, related_name='items')
@@ -304,28 +316,45 @@ class Customer(models.Model):
         return self.user.mobile
     
 
+class OrderDateManager(models.Manager):
+    def get_queryset(self):
+        return super().get_queryset().filter(status=True)
+    
+
 class OrderDate(models.Model):
     date = models.DateField()
     status = models.BooleanField(default=True)
 
+    objects = models.Manager()
+    active = OrderDateManager()
+
     def __str__(self):
-        return self.date
+        return str(self.date)
+    
+
+class OrderTimeManager(models.Manager):
+    def get_queryset(self):
+        return super().get_queryset().filter(status=True)
     
 
 class OrderTime(models.Model):
     time = models.TimeField()
     status = models.BooleanField(default=True)
 
+    objects = models.Manager()
+    active = OrderTimeManager()
+
     def __str__(self):
-        return self.time
+        return str(self.time)
 
 
 class Order(models.Model):
 
     class OrderStatus(models.TextChoices):
-        UNPAID = 'u', _('پرداخت نشده')
-        CANCELED = 'c', _('کنسل شده')
-        PAID = 'p', _('پرداخت شده')
+        CURRENT_ORDERS = 'co', _('جاری')
+        ORDERS_DELIVERED = 'd', _('تحویل شده')
+        RETURN_ORDERS = 'r', _('مرجوعی')
+        CANCELED = 'c', _('لغو شده')
 
     customer = models.ForeignKey(Customer, on_delete=models.CASCADE, related_name='orders')
 
@@ -344,15 +373,18 @@ class Order(models.Model):
     post_code = models.CharField(max_length=10)
     identification_code = models.CharField(max_length=55)
 
+    total_price = models.IntegerField(null=True)
+
     datetime_created = models.DateTimeField(auto_now_add=True)
-    status = models.CharField(max_length=1, choices=OrderStatus.choices, default=OrderStatus.UNPAID)
+    order_status = models.CharField(max_length=2, choices=OrderStatus.choices, default=OrderStatus.CURRENT_ORDERS)
+    status_paid = models.BooleanField(default=False)
 
 
 class OrderItem(models.Model):
     order = models.ForeignKey(Order, on_delete=models.CASCADE, related_name='items')
     product = models.ForeignKey(Product, on_delete=models.CASCADE, related_name='order_items')
     quantity = models.PositiveIntegerField()
-    price = models.IntegerField()
+    purchased_price = models.IntegerField()
 
     class Meta:
         unique_together = [['order', 'product']]

@@ -1,5 +1,9 @@
+import pytz
+
 from rest_framework import serializers
 from django.db import transaction
+from django.conf import settings
+from django.utils import timezone
 
 from store import models
 
@@ -41,6 +45,8 @@ class BaseProductListSerializer(serializers.ModelSerializer):
 
 class ProductListSerializer(serializers.ModelSerializer):
     base_product = BaseProductListSerializer()
+    # title_farsi = serializers.CharField(source='base_product.title_farsi')
+    # category = serializers.CharField(source='base_product.category')
     
     class Meta:
         model = models.Product
@@ -186,7 +192,10 @@ class CartItemBaseProductSerializer(serializers.ModelSerializer):
 
     def to_representation(self, instance):
         rep = super().to_representation(instance)
-        image = models.ProductImage.objects.get(product_id=instance.pk, is_cover=True)
+        try:
+            image = models.ProductImage.objects.get(product_id=instance.pk, is_cover=True)
+        except models.ProductImage.DoesNotExist:
+            image = None
         rep['images'] = CartItemBaseProductImageSerializer(image).data
 
         return rep
@@ -251,10 +260,11 @@ class CartSerializer(serializers.ModelSerializer):
 
 class OrderItemProductSerializer(serializers.ModelSerializer):
     title = serializers.CharField(source='base_product.title_farsi')
+    cuttent_price = serializers.CharField(source='price')
 
     class Meta:
         model = models.Product
-        fields = ['id', 'title', 'price']
+        fields = ['id', 'title', 'cuttent_price']
     
 
 class OrderItemSerializer(serializers.ModelSerializer):
@@ -262,7 +272,7 @@ class OrderItemSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = models.OrderItem
-        fields = ['id', 'product', 'quantity', 'price']
+        fields = ['id', 'product', 'quantity', 'purchased_price']
 
 
 class OrderCustomerSerializer(serializers.ModelSerializer):
@@ -276,22 +286,41 @@ class OrderCustomerSerializer(serializers.ModelSerializer):
 class OrderForAdminSerializer(serializers.ModelSerializer):
     items = OrderItemSerializer(many=True)
 
-    status = serializers.CharField(source='get_status_display')
+    order_status = serializers.CharField(source='get_order_status_display')
     customer = OrderCustomerSerializer()
 
     class Meta:
         model = models.Order
-        fields = ['id', 'customer', 'status', 'datetime_created', 'items']
+        fields = [
+            'id', 'customer', 'order_status', 'status_paid', 'receiver_full_name', 'receiver_mobile', 'province', 'city',
+            'neighbourhood', 'region', 'house_num', 'vahed', 'post_code', 'identification_code'
+            'datetime_created', 'items'
+        ]
 
 
 class OrderForUserSerializer(serializers.ModelSerializer):
     items = OrderItemSerializer(many=True)
+    province = serializers.StringRelatedField()
+    city = serializers.StringRelatedField()
+    neighbourhood = serializers.StringRelatedField()
+    date = serializers.StringRelatedField()
+    time = serializers.StringRelatedField()
 
-    status = serializers.CharField(source='get_status_display')
+    order_status = serializers.CharField(source='get_order_status_display')
+    status_paid = serializers.SerializerMethodField()
 
     class Meta:
         model = models.Order
-        fields = ['id', 'status', 'datetime_created', 'items']
+        fields = [
+            'id', 'order_status', 'status_paid', 'receiver_full_name', 'receiver_mobile', 'province', 'city', 'neighbourhood',
+            'region', 'house_num', 'vahed', 'post_code', 'identification_code', 'date', 'time',
+            'datetime_created', 'total_price', 'items'
+        ]
+
+    def get_status_paid(self, order):
+        if order.status_paid:
+            return 'موفق'
+        return 'ناموفق'
 
 
 class CreateOrderSerializer(serializers.Serializer):
@@ -306,6 +335,9 @@ class CreateOrderSerializer(serializers.Serializer):
     vahed = serializers.IntegerField()
     post_code = serializers.IntegerField()
     identification_code = serializers.IntegerField()
+
+    date = serializers.IntegerField()
+    time = serializers.IntegerField()
 
     def validate_cart_id(self, cart_id):
         print(cart_id)
@@ -331,6 +363,9 @@ class CreateOrderSerializer(serializers.Serializer):
             user_id = self.context['user_id']
 
             customer = models.Customer.objects.get(user_id=user_id)
+            cart = models.Cart.objects.get(pk=cart_id)
+            print('+=' * 40)
+            print(cart)
 
             order = models.Order(
                 customer=customer,
@@ -344,6 +379,9 @@ class CreateOrderSerializer(serializers.Serializer):
                 vahed=data['vahed'],
                 post_code=data['post_code'],
                 identification_code=data['identification_code'],
+                date_id=data['date'],
+                time_id=data['time'],
+                total_price=cart.get_amount_payable()
             )
             order.save()
 
@@ -353,7 +391,7 @@ class CreateOrderSerializer(serializers.Serializer):
                 models.OrderItem(
                     order=order,
                     product_id=cart_item.product_id,
-                    price=cart_item.product.price,
+                    purchased_price=cart_item.product.price,
                     quantity=cart_item.quantity
                 ) for cart_item in cart_items
             ]
@@ -369,7 +407,7 @@ class CreateOrderSerializer(serializers.Serializer):
 
             models.OrderItem.objects.bulk_create(order_items)
 
-            models.Cart.objects.get(id=cart_id).delete()
+            # models.Cart.objects.get(id=cart_id).delete()
 
             return order
         
@@ -381,7 +419,8 @@ class HaghighyStoreSerializer(serializers.ModelSerializer):
         fields = [
             'id', 'name', 'mobile_number', 'phone_number', 'email', 'code', 'shomare_shaba',
             'province', 'city', 'mantaghe', 'mahalle', 'parvane_kasb', 'tasvire_personely',
-            'kart_melli', 'shenasname', 'logo', 'roozname_rasmi_alamat', 'gharardad', 'store_type',
+            'kart_melli', 'shenasname', 'logo', 'roozname_rasmi_alamat', 'gharardad',
+            'post_code', 'address', 'store_type',
             'full_name', 'birth_date', 'name_father', 'code_melli', 'shomare_shenasname',
         ]
 
@@ -393,7 +432,8 @@ class HoghoughyStoreSerializer(serializers.ModelSerializer):
         fields = [
             'id', 'name', 'mobile_number', 'phone_number', 'email', 'code', 'shomare_shaba',
             'province', 'city', 'mantaghe', 'mahalle', 'parvane_kasb', 'tasvire_personely',
-            'kart_melli', 'shenasname', 'logo', 'roozname_rasmi_alamat', 'gharardad', 'store_type',
+            'kart_melli', 'shenasname', 'logo', 'roozname_rasmi_alamat', 'gharardad',
+            'address', 'post_code', 'num_of_registration', 'store_type',
             'ceo_name', 'company_name', 'date_of_registration', 'economic_code',
         ]
 
@@ -407,3 +447,35 @@ class StoreSerializer(serializers.ModelSerializer):
             'province', 'city', 'mantaghe', 'mahalle', 'parvane_kasb', 'tasvire_personely',
             'kart_melli', 'shenasname', 'logo', 'roozname_rasmi_alamat', 'gharardad', 'store_type',
         ]
+
+
+class OrderDateSerializer(serializers.ModelSerializer):
+
+    class Meta:
+        model = models.OrderDate
+        fields = ['id', 'date']
+
+    def to_representation(self, instance):
+        rep = super().to_representation(instance)
+        # rep['time'] = timezone.localtime(instance.time)
+
+        # tz = timezone.get_current_timezone()
+        # rep['date'] = timezone.make_aware(instance.date, tz)
+
+        return rep
+
+
+class OrderTimeSerializer(serializers.ModelSerializer):
+
+    class Meta:
+        model = models.OrderTime
+        fields = ['id', 'time']
+
+    def to_representation(self, instance):
+        rep = super().to_representation(instance)
+        # rep['time'] = timezone.localtime(instance.time)
+
+        tz = timezone.get_current_timezone()
+        rep['time'] = timezone.make_aware(instance.time, tz)
+
+        return rep

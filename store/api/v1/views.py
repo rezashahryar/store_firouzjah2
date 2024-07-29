@@ -153,3 +153,13 @@ class CreateStoreApiView(generics.CreateAPIView):
         elif self.request.data['store_type'] == 'ho':
             return serializers.HoghoughyStoreSerializer
         return serializers.StoreSerializer
+    
+
+class OrderDateListApiView(generics.ListAPIView):
+    queryset = models.OrderDate.active.all()
+    serializer_class = serializers.OrderDateSerializer
+
+
+class OrderTimeListApiView(generics.ListAPIView):
+    queryset = models.OrderTime.active.all()
+    serializer_class = serializers.OrderTimeSerializer
