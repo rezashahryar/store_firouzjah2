@@ -7,7 +7,7 @@ from . import views
 
 router = routers.DefaultRouter()
 
-router.register('products', views.ProductListViewSet, basename='product-list')
+router.register('products', views.ProductViewSet, basename='product-list')
 router.register('carts', views.CartViewSet, basename='carts')
 router.register('orders', views.OrderViewSet, basename='order')
 

@@ -3,6 +3,7 @@ from rest_framework.viewsets import GenericViewSet, ModelViewSet
 from rest_framework import mixins
 from rest_framework.response import Response
 from rest_framework import generics
+from django_filters.rest_framework import DjangoFilterBackend
 from rest_framework.permissions import IsAuthenticated, IsAdminUser
 
 from store import models
@@ -12,10 +13,12 @@ from . import serializers
 # create your views here
 
 
-class ProductListViewSet(mixins.ListModelMixin,
+class ProductViewSet(mixins.ListModelMixin,
                         mixins.RetrieveModelMixin,
                         GenericViewSet):
     lookup_field = 'slug'
+    filter_backends = [DjangoFilterBackend]
+    filterset_fields = ['base_product__category_id', 'base_product__brand']
 
     def retrieve(self, request, *args, **kwargs):
         instance = self.get_object()

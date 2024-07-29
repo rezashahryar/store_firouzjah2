@@ -98,14 +98,28 @@ class BaseProductDetailCommentSerializer(serializers.ModelSerializer):
             user_id=user_id,
             **validated_data
         )
+    
+
+class BaseProductDetailCategorySerializer(serializers.ModelSerializer):
+
+    class Meta:
+        model = models.CategoryProduct
+        fields = ['id', 'name']
+
+
+class BaseProductDetailSubCategorySerializer(serializers.ModelSerializer):
+
+    class Meta:
+        model = models.SubCategoryProduct
+        fields = ['id', 'name']
 
 
 class BaseProductDetailSerializer(serializers.ModelSerializer):
     properties = ProductPropertySerializer(many=True)
     comments = BaseProductDetailCommentSerializer(many=True)
     
-    category = serializers.StringRelatedField()
-    sub_category = serializers.StringRelatedField()
+    category = BaseProductDetailCategorySerializer()
+    sub_category = BaseProductDetailSubCategorySerializer()
     product_type = serializers.StringRelatedField()
     brand = serializers.StringRelatedField()
     sending_method = serializers.CharField(source='get_sending_method_display')
