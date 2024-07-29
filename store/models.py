@@ -388,3 +388,15 @@ class OrderItem(models.Model):
 
     class Meta:
         unique_together = [['order', 'product']]
+
+
+class RequestPhotography(models.Model):
+    full_name = models.CharField(max_length=255)
+    mobile = models.CharField(max_length=11)
+    province = models.ForeignKey(Province, on_delete=models.CASCADE, related_name='requests_photography')
+    city = models.ForeignKey(City, on_delete=models.CASCADE, related_name='requests_photography')
+    neighbourhood = models.ForeignKey(Neighbourhood, on_delete=models.CASCADE, related_name='requests_photography')
+    mahalle = models.CharField(max_length=255)
+    address = models.TextField()
+    store_name = models.CharField(max_length=255)
+    request_text = models.TextField()

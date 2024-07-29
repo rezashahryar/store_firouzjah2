@@ -163,3 +163,7 @@ class OrderDateListApiView(generics.ListAPIView):
 class OrderTimeListApiView(generics.ListAPIView):
     queryset = models.OrderTime.active.all()
     serializer_class = serializers.OrderTimeSerializer
+
+
+class SendRequestPhotographyApiView(generics.CreateAPIView):
+    serializer_class = serializers.RequestPhotographySerializer

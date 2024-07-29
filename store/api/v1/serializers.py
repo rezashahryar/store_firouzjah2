@@ -479,3 +479,13 @@ class OrderTimeSerializer(serializers.ModelSerializer):
         rep['time'] = timezone.make_aware(instance.time, tz)
 
         return rep
+    
+
+class RequestPhotographySerializer(serializers.ModelSerializer):
+
+    class Meta:
+        model = models.RequestPhotography
+        fields = [
+            'id', 'full_name', 'mobile', 'province', 'city', 'neighbourhood',
+            'mahalle', 'address', 'store_name', 'request_text'
+        ]

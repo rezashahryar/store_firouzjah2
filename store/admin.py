@@ -157,3 +157,8 @@ class HaghighyStoreAdmin(admin.ModelAdmin):
 @admin.register(models.HoghoughyStore)
 class HoghoughyStoreAdmin(admin.ModelAdmin):
     ...
+
+
+@admin.register(models.RequestPhotography)
+class RequestPhotographyAdmin(admin.ModelAdmin):
+    ...
