@@ -46,6 +46,7 @@ INSTALLED_APPS = [
     'rest_framework.authtoken',
     'drf_yasg',
     'debug_toolbar',
+    'django_filters',
 
     # local apps
     'core.apps.CoreConfig',
