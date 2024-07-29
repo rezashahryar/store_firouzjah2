@@ -372,3 +372,38 @@ class CreateOrderSerializer(serializers.Serializer):
             models.Cart.objects.get(id=cart_id).delete()
 
             return order
+        
+
+class HaghighyStoreSerializer(serializers.ModelSerializer):
+
+    class Meta:
+        model = models.HaghighyStore
+        fields = [
+            'id', 'name', 'mobile_number', 'phone_number', 'email', 'code', 'shomare_shaba',
+            'province', 'city', 'mantaghe', 'mahalle', 'parvane_kasb', 'tasvire_personely',
+            'kart_melli', 'shenasname', 'logo', 'roozname_rasmi_alamat', 'gharardad', 'store_type',
+            'full_name', 'birth_date', 'name_father', 'code_melli', 'shomare_shenasname',
+        ]
+
+
+class HoghoughyStoreSerializer(serializers.ModelSerializer):
+
+    class Meta:
+        model = models.HoghoughyStore
+        fields = [
+            'id', 'name', 'mobile_number', 'phone_number', 'email', 'code', 'shomare_shaba',
+            'province', 'city', 'mantaghe', 'mahalle', 'parvane_kasb', 'tasvire_personely',
+            'kart_melli', 'shenasname', 'logo', 'roozname_rasmi_alamat', 'gharardad', 'store_type',
+            'ceo_name', 'company_name', 'date_of_registration', 'economic_code',
+        ]
+
+
+class StoreSerializer(serializers.ModelSerializer):
+
+    class Meta:
+        model = models.Store
+        fields = [
+            'id', 'name', 'mobile_number', 'phone_number', 'email', 'code', 'shomare_shaba',
+            'province', 'city', 'mantaghe', 'mahalle', 'parvane_kasb', 'tasvire_personely',
+            'kart_melli', 'shenasname', 'logo', 'roozname_rasmi_alamat', 'gharardad', 'store_type',
+        ]

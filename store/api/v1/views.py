@@ -143,3 +143,13 @@ class OrderViewSet(ModelViewSet):
     
     def get_serializer_context(self):
         return {'user_id': self.request.user.pk}
+    
+
+class CreateStoreApiView(generics.CreateAPIView):
+
+    def get_serializer_class(self):
+        if self.request.data['store_type'] == 'ha':
+            return serializers.HaghighyStoreSerializer
+        elif self.request.data['store_type'] == 'ho':
+            return serializers.HoghoughyStoreSerializer
+        return serializers.StoreSerializer
