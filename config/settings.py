@@ -52,6 +52,7 @@ INSTALLED_APPS = [
     'core.apps.CoreConfig',
     'store.apps.StoreConfig',
     'user_panel.apps.UserPanelConfig',
+    'admin_panel.apps.AdminPanelConfig',
 ]
 
 MIDDLEWARE = [
