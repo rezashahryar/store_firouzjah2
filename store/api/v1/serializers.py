@@ -543,7 +543,7 @@ class SameProductDetailSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = models.Product
-        fields = ['id', 'title_farsi', 'send_method', 'price', 'price_after_discount', 'discount_percent', 'end_discount']
+        fields = ['id', 'title_farsi', 'slug', 'send_method', 'price', 'price_after_discount', 'discount_percent', 'end_discount']
 
 
 class SameProductsListSerializer(serializers.ModelSerializer):
@@ -553,3 +553,23 @@ class SameProductsListSerializer(serializers.ModelSerializer):
     class Meta:
         model = models.SameProduct
         fields = ['store', 'product']
+
+
+class ReportProductDetailSerializer(serializers.ModelSerializer):
+
+    class Meta:
+        model = models.BaseProduct
+        fields = ['title_farsi']
+
+
+class ReportproductSerializer(serializers.ModelSerializer):
+
+    class Meta:
+        model = models.ReportProduct
+        fields = ['product', 'text']
+
+    def to_representation(self, instance):
+        rep = super().to_representation(instance)
+        rep['product'] = ReportProductDetailSerializer(instance.product).data
+
+        return rep

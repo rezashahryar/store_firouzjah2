@@ -405,3 +405,8 @@ class RequestPhotography(models.Model):
 class SameProduct(models.Model):
     store = models.ForeignKey(Store, on_delete=models.CASCADE, related_name='same_products')
     product = models.ForeignKey(Product, on_delete=models.CASCADE, related_name='same_products')
+
+
+class ReportProduct(models.Model):
+    product = models.ForeignKey(BaseProduct, on_delete=models.CASCADE, related_name='reports')
+    text = models.TextField()

@@ -179,7 +179,12 @@ class ListSameProductApiView(generics.ListAPIView):
     def get_queryset(self):
         pk = self.kwargs['pk']
         base_product_obj = models.BaseProduct.objects.get(pk=pk)
-        return models.SameProduct.objects.filter(product__base_product__category=base_product_obj.category,
-                                                 product__base_product__sub_category=base_product_obj.sub_category,
-                                                 product__base_product__brand=base_product_obj.brand,
-                                                 )
+        return models.SameProduct.objects.filter(
+            product__base_product__category=base_product_obj.category,
+            product__base_product__sub_category=base_product_obj.sub_category,
+            product__base_product__brand=base_product_obj.brand,
+        )
+    
+
+class SendReportProduct(generics.CreateAPIView):
+    serializer_class = serializers.ReportproductSerializer

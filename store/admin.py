@@ -167,3 +167,8 @@ class RequestPhotographyAdmin(admin.ModelAdmin):
 @admin.register(models.SameProduct)
 class SameProductAdmin(admin.ModelAdmin):
     ...
+
+
+@admin.register(models.ReportProduct)
+class ReportProductAdmin(admin.ModelAdmin):
+    ...
