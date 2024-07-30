@@ -188,3 +188,7 @@ class ListSameProductApiView(generics.ListAPIView):
 
 class SendReportProduct(generics.CreateAPIView):
     serializer_class = serializers.ReportproductSerializer
+
+
+class ContactUsApiView(generics.CreateAPIView):
+    serializer_class = serializers.ContactUsSerializer

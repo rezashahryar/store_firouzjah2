@@ -16,6 +16,7 @@ cart_items_router.register('items', views.CartItemViewSet, basename='cart_item')
 
 
 urlpatterns = [
+    path('contact-us/', views.ContactUsApiView.as_view(), name='contact-us'),
     path('send-report-product/', views.SendReportProduct.as_view(), name='send_report_product'),
     path('same-products/<int:pk>/', views.ListSameProductApiView.as_view(), name='same-products'),
     path('send-request-photography/', views.SendRequestPhotographyApiView.as_view(), name='send-request-photography'),

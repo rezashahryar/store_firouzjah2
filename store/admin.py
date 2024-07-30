@@ -164,6 +164,11 @@ class RequestPhotographyAdmin(admin.ModelAdmin):
     ...
 
 
+@admin.register(models.ContactUs)
+class ContactUsAdmin(admin.ModelAdmin):
+    ...
+
+
 @admin.register(models.SameProduct)
 class SameProductAdmin(admin.ModelAdmin):
     ...

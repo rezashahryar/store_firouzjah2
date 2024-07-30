@@ -410,3 +410,17 @@ class SameProduct(models.Model):
 class ReportProduct(models.Model):
     product = models.ForeignKey(BaseProduct, on_delete=models.CASCADE, related_name='reports')
     text = models.TextField()
+
+
+def generate_tracking_code():
+    code = random.randint(100000000, 999999999)
+    return code
+
+
+class ContactUs(models.Model):
+    full_name = models.CharField(max_length=255)
+    mobile = models.CharField(max_length=11)
+    email = models.EmailField()
+    subject = models.CharField(max_length=255)
+    text = models.TextField()
+    tracking_code = models.CharField(max_length=9, unique=True, default=generate_tracking_code)

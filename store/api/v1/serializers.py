@@ -573,3 +573,11 @@ class ReportproductSerializer(serializers.ModelSerializer):
         rep['product'] = ReportProductDetailSerializer(instance.product).data
 
         return rep
+    
+
+class ContactUsSerializer(serializers.ModelSerializer):
+
+    class Meta:
+        model = models.ContactUs
+        fields = ['id', 'full_name', 'mobile', 'email', 'subject', 'text', 'tracking_code']
+        read_only_fields = ['tracking_code']
