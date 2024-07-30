@@ -161,7 +161,7 @@ class BaseProduct(models.Model):
         BAARBARI = 'ba', _('باربری')
         PEYK_MOTORI = 'mo', _('پیک موتوری')
 
-    # store
+    store = models.ForeignKey(Store, on_delete=models.CASCADE, related_name='products', null=True)
     category = models.ForeignKey(CategoryProduct, on_delete=models.CASCADE, related_name='products')
     sub_category = models.ForeignKey(SubCategoryProduct, on_delete=models.CASCADE, related_name='products')
     product_type = models.ForeignKey(ProductType, on_delete=models.CASCADE, related_name='products')
@@ -250,7 +250,7 @@ class Product(models.Model):
         return f'{self.base_product.title_farsi} - {self.color} - {self.size}'
     
     def save(self, *args, **kwargs):
-        self.slug = self.generate_unique_slug(self.pk, self.color.name, self.size.size)
+        self.slug = self.generate_unique_slug(self.base_product.pk, self.color.name, self.size.size)
         return super().save(*args, **kwargs)
     
     def generate_unique_slug(self, id, color, size):
@@ -400,3 +400,8 @@ class RequestPhotography(models.Model):
     address = models.TextField()
     store_name = models.CharField(max_length=255)
     request_text = models.TextField()
+
+
+class SameProduct(models.Model):
+    store = models.ForeignKey(Store, on_delete=models.CASCADE, related_name='same_products')
+    product = models.ForeignKey(Product, on_delete=models.CASCADE, related_name='same_products')

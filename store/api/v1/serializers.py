@@ -1,8 +1,5 @@
-import pytz
-
 from rest_framework import serializers
 from django.db import transaction
-from django.conf import settings
 from django.utils import timezone
 
 from store import models
@@ -33,14 +30,23 @@ class ColorSerializer(serializers.ModelSerializer):
 
     def get_slug(self, product):
         return product['products__slug']
+    
+
+class BaseProductStoreListSerializer(serializers.ModelSerializer):
+    province = serializers.StringRelatedField()
+
+    class Meta:
+        model = models.Store
+        fields = ['code', 'province']
 
 
 class BaseProductListSerializer(serializers.ModelSerializer):
     category = serializers.StringRelatedField()
+    store = BaseProductStoreListSerializer()
 
     class Meta:
         model = models.BaseProduct
-        fields = ['id', 'category', 'title_farsi']
+        fields = ['id', 'store', 'category', 'title_farsi']
 
 
 class ProductListSerializer(serializers.ModelSerializer):
@@ -114,6 +120,21 @@ class BaseProductDetailSubCategorySerializer(serializers.ModelSerializer):
         fields = ['id', 'name']
 
 
+class BaseProductDetailImageSerializer(serializers.ModelSerializer):
+
+    class Meta:
+        model = models.ProductImage
+        fields = ['image', 'is_cover']
+
+
+class BaseProductDetailStoreSerializer(serializers.ModelSerializer):
+    province = serializers.StringRelatedField()
+
+    class Meta:
+        model = models.Store
+        fields = ['id', 'name', 'code', 'province']
+
+
 class BaseProductDetailSerializer(serializers.ModelSerializer):
     properties = ProductPropertySerializer(many=True)
     comments = BaseProductDetailCommentSerializer(many=True)
@@ -124,12 +145,15 @@ class BaseProductDetailSerializer(serializers.ModelSerializer):
     brand = serializers.StringRelatedField()
     sending_method = serializers.CharField(source='get_sending_method_display')
 
+    images = BaseProductDetailImageSerializer(many=True)
+    store = BaseProductDetailStoreSerializer()
+
     class Meta:
         model = models.BaseProduct
         fields = [
-            'id', 'category', 'sub_category', 'product_type', 'product_code', 'brand',
+            'id', 'store', 'category', 'sub_category', 'product_type', 'product_code', 'brand',
             'title_farsi', 'title_english', 'description', 'product_authenticity', 'product_warranty',
-            'sending_method', 'properties', 'comments'
+            'sending_method', 'properties', 'comments', 'images'
         ]
 
 
@@ -503,3 +527,29 @@ class RequestPhotographySerializer(serializers.ModelSerializer):
             'id', 'full_name', 'mobile', 'province', 'city', 'neighbourhood',
             'mahalle', 'address', 'store_name', 'request_text'
         ]
+
+
+class SameProductStoreSerializer(serializers.ModelSerializer):
+    province = serializers.StringRelatedField()
+
+    class Meta:
+        model = models.Store
+        fields = ['id', 'code', 'province']
+
+
+class SameProductDetailSerializer(serializers.ModelSerializer):
+    title_farsi = serializers.CharField(source='base_product.title_farsi')
+    send_method = serializers.CharField(source='base_product.get_sending_method_display')
+
+    class Meta:
+        model = models.Product
+        fields = ['id', 'title_farsi', 'send_method', 'price', 'price_after_discount', 'discount_percent', 'end_discount']
+
+
+class SameProductsListSerializer(serializers.ModelSerializer):
+    product = SameProductDetailSerializer()
+    store = SameProductStoreSerializer()
+
+    class Meta:
+        model = models.SameProduct
+        fields = ['store', 'product']

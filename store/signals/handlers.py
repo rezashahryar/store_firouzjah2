@@ -13,3 +13,12 @@ def create_customer_when_registered_new_user(instance, created, *args, **kwargs)
         models.Customer.objects.create(
             user=instance,
         )
+
+
+@receiver(post_save, sender=models.Product)
+def create_same_product_obj(instance, created, *args, **kwargs):
+    if created:
+        models.SameProduct.objects.create(
+            store=instance.base_product.store,
+            product=instance
+        )

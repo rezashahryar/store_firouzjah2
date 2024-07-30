@@ -32,7 +32,8 @@ class ProductViewSet(mixins.ListModelMixin,
     def get_queryset(self):
         if self.action == 'list':
             return models.Product.objects.select_related('base_product') \
-                .select_related('base_product__category').select_related('base_product__sub_category').all()
+                .select_related('base_product__category').select_related('base_product__sub_category') \
+                    .select_related('base_product__store__province').all()
         elif self.action == 'retrieve':
             return models.Product.objects.select_related('base_product') \
                 .select_related('base_product__category').select_related('base_product__sub_category') \
@@ -47,7 +48,7 @@ class ProductViewSet(mixins.ListModelMixin,
                                     'answers',
                                     queryset=models.ProductAnswerComment.objects.select_related('user')
                                 ))
-                        )).all()
+                        )).select_related('base_product__store__province').all()
 
     def get_serializer_class(self):
         if self.action == 'list':
@@ -170,3 +171,15 @@ class OrderTimeListApiView(generics.ListAPIView):
 
 class SendRequestPhotographyApiView(generics.CreateAPIView):
     serializer_class = serializers.RequestPhotographySerializer
+
+
+class ListSameProductApiView(generics.ListAPIView):
+    serializer_class = serializers.SameProductsListSerializer
+
+    def get_queryset(self):
+        pk = self.kwargs['pk']
+        base_product_obj = models.BaseProduct.objects.get(pk=pk)
+        return models.SameProduct.objects.filter(product__base_product__category=base_product_obj.category,
+                                                 product__base_product__sub_category=base_product_obj.sub_category,
+                                                 product__base_product__brand=base_product_obj.brand,
+                                                 )
