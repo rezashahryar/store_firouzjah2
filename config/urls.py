@@ -29,6 +29,7 @@ from django.conf.urls.static import static
 urlpatterns = [
     path('auth/', include('core.urls')),
     path('store/', include('store.urls')),
+    path('panel-user/', include('user_panel.urls')),
     path('admin/', admin.site.urls),
 ] + debug_toolbar_urls()
 

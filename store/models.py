@@ -47,6 +47,8 @@ class Store(models.Model):
     class StoreType(models.TextChoices):
         HAGHIGHY = "ha", _("حقیقی")
         HOGHOUGHY = "ho", _("حقوقی")
+    
+    user = models.OneToOneField(settings.AUTH_USER_MODEL, on_delete=models.CASCADE, related_name='store', null=True)
 
     name = models.CharField(max_length=255, null=True, blank=True)
     mobile_number = models.CharField(max_length=11)
