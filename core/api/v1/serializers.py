@@ -61,7 +61,7 @@ class CheckOtpSerializer(serializers.Serializer):
             )
 
             if otp_req.valid_until < timezone.now():
-                raise serializers.ValidationError("this code expired")
+                raise serializers.ValidationError("کد ارسال شده منقضی شده لطفا مجددا تلاش نمایید")
         except OtpRequest.DoesNotExist:
             ...
 

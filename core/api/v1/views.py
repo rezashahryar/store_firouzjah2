@@ -67,7 +67,7 @@ class CheckOtpView(generics.GenericAPIView):
         except OtpRequest.DoesNotExist:
             return Response(
                 {
-                    "error": "otp code is wrong",
+                    "error": "کد وارد شده اشتباه است",
                 },
                 status=status.HTTP_400_BAD_REQUEST
             )
