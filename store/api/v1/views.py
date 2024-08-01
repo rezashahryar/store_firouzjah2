@@ -31,11 +31,19 @@ class ProductViewSet(mixins.ListModelMixin,
 
     def get_queryset(self):
         if self.action == 'list':
-            return models.Product.objects.select_related('base_product') \
-                .select_related('base_product__category').select_related('base_product__sub_category') \
-                    .select_related('base_product__store__province').all()
+            products_queryset = models.Product.objects.select_related('base_product') \
+                .select_related('base_product__category') \
+                    .all().defer(
+                        'unit', 'base_product__brand', 'base_product__product_code', 'base_product__description',
+                        'base_product__category__logo', 'base_product__sub_category', 'inventory',
+                        'length_package', 'width_package', 'height_package', 'weight_package', 'base_product__store',
+                        'size', 'color', 'start_discount', 'shenase_kala', 'barcode', 'product_status', 'product_is_active',
+                        'base_product__product_type', 'base_product__title_english', 'base_product__product_authenticity',
+                        'base_product__product_warranty', 'base_product__sending_method'
+                    )
+            return products_queryset
         elif self.action == 'retrieve':
-            return models.Product.objects.select_related('base_product') \
+            product_queryset = models.Product.objects.select_related('base_product') \
                 .select_related('base_product__category').select_related('base_product__sub_category') \
                     .select_related('base_product__product_type').select_related('base_product__brand') \
                         .select_related('size').select_related('color').prefetch_related(Prefetch(
@@ -49,6 +57,7 @@ class ProductViewSet(mixins.ListModelMixin,
                                     queryset=models.ProductAnswerComment.objects.select_related('user')
                                 ))
                         )).select_related('base_product__store__province').all()
+            return product_queryset
 
     def get_serializer_class(self):
         if self.action == 'list':

@@ -32,7 +32,7 @@ class ColorSerializer(serializers.ModelSerializer):
         return product['products__slug']
     
 
-class BaseProductStoreListSerializer(serializers.ModelSerializer):
+class BaseProductListStoreSerializer(serializers.ModelSerializer):
     province = serializers.StringRelatedField()
 
     class Meta:
@@ -42,11 +42,11 @@ class BaseProductStoreListSerializer(serializers.ModelSerializer):
 
 class BaseProductListSerializer(serializers.ModelSerializer):
     category = serializers.StringRelatedField()
-    store = BaseProductStoreListSerializer()
+    # store = BaseProductListStoreSerializer()
 
     class Meta:
         model = models.BaseProduct
-        fields = ['id', 'store', 'category', 'title_farsi']
+        fields = ['id', 'category', 'title_farsi']
 
 
 class ProductListSerializer(serializers.ModelSerializer):
