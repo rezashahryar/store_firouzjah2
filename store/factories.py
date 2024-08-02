@@ -11,6 +11,13 @@ from . import models
 faker = Faker()
 
 
+class ProductAnswerCommentFactory(DjangoModelFactory):
+    class Meta:
+        model = models.ProductAnswerComment
+    
+    text = factory.Faker('text')
+
+
 class ProductCommentFactory(DjangoModelFactory):
     class Meta:
         model = models.ProductComment

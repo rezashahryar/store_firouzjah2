@@ -4,11 +4,12 @@ from django.core.management.base import BaseCommand
 from django.db import transaction
 from django.contrib.auth import get_user_model
 
-from store.models import CategoryProduct, ProductProperties
+from store.models import CategoryProduct, ProductComment, ProductProperties, ProductAnswerComment
 
 from store.factories import (
     CategoryFactory, BaseProductFactory, BrandFactory, SubCategoryProductFactory, ProductFactory,
-    SizeFactory, ColorFactory, ProductPropertiesFactory, ProductCommentFactory
+    SizeFactory, ColorFactory, ProductPropertiesFactory, ProductCommentFactory,
+    ProductAnswerCommentFactory
 )
 
 # create your command here
@@ -24,6 +25,7 @@ NUM_SIZES = 100
 NUM_COLORS = 100
 NUM_PRODUCT_PROPERTIES = 100
 NUM_COMMENT_OF_PRODUCTS = 100
+NUM_ANSWER_COMMENT_OF_PRODUCT = 100
 
 
 class Command(BaseCommand):
@@ -116,4 +118,16 @@ class Command(BaseCommand):
                     user_id=get_user_model().objects.all().first().id,
                 )
                 comment.save()
+        print('DONE')
+
+
+        # answer comment data
+        print(f'adding {NUM_ANSWER_COMMENT_OF_PRODUCT} answer of comments...')
+        for comment in ProductComment.objects.all():
+            for _ in range(random.randint(1, 2)):
+                answer = ProductAnswerCommentFactory(
+                    comment_id=comment.id,
+                    user_id=get_user_model().objects.all().first().id,
+                )
+                answer.save()
         print('DONE')
