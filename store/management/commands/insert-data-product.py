@@ -3,16 +3,16 @@ import random
 from django.core.management.base import BaseCommand
 from django.db import transaction
 
-from store.models import CategoryProduct
+from store.models import CategoryProduct, ProductProperties
 
 from store.factories import (
     CategoryFactory, BaseProductFactory, BrandFactory, SubCategoryProductFactory, ProductFactory,
-    SizeFactory, ColorFactory
+    SizeFactory, ColorFactory, ProductPropertiesFactory
 )
 
 # create your command here
 
-list_of_models = [CategoryProduct]
+list_of_models = [CategoryProduct, ProductProperties]
 
 NUM_CATEGORIES = 100
 NUM_BASE_PRODUCTS = 100
@@ -21,6 +21,7 @@ NUM_SUB_CATEGORIES = 100
 NUM_PRODUCTS = 100
 NUM_SIZES = 100
 NUM_COLORS = 100
+NUM_PRODUCT_PROPERTIES = 100
 
 
 class Command(BaseCommand):
@@ -33,6 +34,12 @@ class Command(BaseCommand):
             m.objects.all().delete()
 
         self.stdout.write('creating new data \n')
+
+
+        # product properties data
+        print(f'adding {NUM_PRODUCT_PROPERTIES} product properties...')
+        all_product_properties = [ProductPropertiesFactory() for _ in range(NUM_PRODUCT_PROPERTIES)]
+        print('DONE')
 
 
         # size data
@@ -54,8 +61,10 @@ class Command(BaseCommand):
 
 
         # categories data
-        print(f'adding {NUM_CATEGORIES} categories ...', end="")
-        all_categories = [CategoryFactory() for _ in range(NUM_CATEGORIES)]
+        print(f'adding {NUM_CATEGORIES} categories ...')
+        all_categories = [
+            CategoryFactory() for _ in range(NUM_CATEGORIES)
+        ]
         print('Done')
 
 
@@ -92,3 +101,5 @@ class Command(BaseCommand):
                 color_id=random.choice(all_colors).id,
                 size_id=random.choice(all_sizes).id,
             )
+            all_products.append(new_product)
+        print('DONE...')

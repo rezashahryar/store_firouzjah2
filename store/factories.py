@@ -44,7 +44,16 @@ class BrandFactory(DjangoModelFactory):
 class ProductPropertiesFactory(DjangoModelFactory):
     class Meta:
         model = models.ProductProperties
-    title = factory.Faker("word")
+    title = factory.Faker("name")
+
+    @factory.post_generation
+    def properties(self, create, extracted, **kwargs):
+        if not create:
+            return
+
+        if extracted:
+            for tournament in extracted:
+                self.tournaments.add(tournament)
 
 
 class CategoryFactory(DjangoModelFactory):
@@ -53,10 +62,15 @@ class CategoryFactory(DjangoModelFactory):
 
     name = factory.Faker(
         "sentence",
-        nb_words=5,
+        nb_words=2,
         variable_nb_words=True
     )
     slug = slugify(name)
+    # properties = factory.RelatedFactoryList(
+    #     ProductPropertiesFactory,
+    #     factory_related_name='categories',
+    #     size=lambda: random.randint(1, 25)
+    # )
 
 
 class BaseProductFactory(DjangoModelFactory):
