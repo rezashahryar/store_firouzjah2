@@ -166,7 +166,7 @@ class BaseProduct(models.Model):
     store = models.ForeignKey(Store, on_delete=models.CASCADE, related_name='products', null=True)
     category = models.ForeignKey(CategoryProduct, on_delete=models.CASCADE, related_name='products')
     sub_category = models.ForeignKey(SubCategoryProduct, on_delete=models.CASCADE, related_name='products')
-    product_type = models.ForeignKey(ProductType, on_delete=models.CASCADE, related_name='products')
+    product_type = models.ForeignKey(ProductType, on_delete=models.CASCADE, related_name='products', null=True)
     product_code = models.CharField(max_length=10)
 
     brand = models.ForeignKey(Brand, on_delete=models.CASCADE, related_name='products')
@@ -222,8 +222,8 @@ class Product(models.Model):
 
     slug = models.SlugField(null=True)
 
-    size = models.ForeignKey(Size, on_delete=models.CASCADE, related_name='products')
-    color = models.ForeignKey(Color, on_delete=models.CASCADE, related_name='products')
+    size = models.ForeignKey(Size, on_delete=models.CASCADE, related_name='products', null=True)
+    color = models.ForeignKey(Color, on_delete=models.CASCADE, related_name='products', null=True)
 
     inventory = models.PositiveIntegerField()
 
@@ -233,8 +233,8 @@ class Product(models.Model):
     price_after_discount = models.IntegerField(null=True, blank=True)
     discount_percent = models.PositiveIntegerField(null=True, blank=True)
 
-    start_discount = models.DateTimeField()
-    end_discount = models.DateTimeField()
+    start_discount = models.DateTimeField(null=True)
+    end_discount = models.DateTimeField(null=True)
 
     length_package = models.IntegerField(null=True, blank=True)
     width_package = models.IntegerField(null=True, blank=True)
@@ -405,7 +405,7 @@ class RequestPhotography(models.Model):
 
 
 class SameProduct(models.Model):
-    store = models.ForeignKey(Store, on_delete=models.CASCADE, related_name='same_products')
+    store = models.ForeignKey(Store, on_delete=models.CASCADE, related_name='same_products', null=True)
     product = models.ForeignKey(Product, on_delete=models.CASCADE, related_name='same_products')
 
 
