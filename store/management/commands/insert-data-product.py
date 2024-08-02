@@ -2,12 +2,13 @@ import random
 
 from django.core.management.base import BaseCommand
 from django.db import transaction
+from django.contrib.auth import get_user_model
 
 from store.models import CategoryProduct, ProductProperties
 
 from store.factories import (
     CategoryFactory, BaseProductFactory, BrandFactory, SubCategoryProductFactory, ProductFactory,
-    SizeFactory, ColorFactory, ProductPropertiesFactory
+    SizeFactory, ColorFactory, ProductPropertiesFactory, ProductCommentFactory
 )
 
 # create your command here
@@ -22,6 +23,7 @@ NUM_PRODUCTS = 100
 NUM_SIZES = 100
 NUM_COLORS = 100
 NUM_PRODUCT_PROPERTIES = 100
+NUM_COMMENT_OF_PRODUCTS = 100
 
 
 class Command(BaseCommand):
@@ -103,3 +105,15 @@ class Command(BaseCommand):
             )
             all_products.append(new_product)
         print('DONE...')
+
+
+        # comments data
+        print(f'adding {NUM_COMMENT_OF_PRODUCTS} comments for products...')
+        for product in all_products:
+            for _ in range(random.randint(1, 5)):
+                comment = ProductCommentFactory(
+                    product_id=product.id,
+                    user_id=get_user_model().objects.all().first().id,
+                )
+                comment.save()
+        print('DONE')

@@ -39,7 +39,7 @@ class ProductViewSet(mixins.ListModelMixin,
                         'length_package', 'width_package', 'height_package', 'weight_package', 'base_product__store',
                         'size', 'color', 'start_discount', 'shenase_kala', 'barcode', 'product_status', 'product_is_active',
                         'base_product__product_type', 'base_product__title_english', 'base_product__product_authenticity',
-                        'base_product__product_warranty', 'base_product__sending_method'
+                        'base_product__product_warranty', 'base_product__sending_method', 'base_product__category__slug'
                     )
             return products_queryset
         elif self.action == 'retrieve':
