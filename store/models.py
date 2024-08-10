@@ -5,8 +5,25 @@ from uuid import uuid4
 from django.db import models
 from django.utils.translation import gettext_lazy as _
 from django.conf import settings
+from django.core.validators import MaxValueValidator, MinValueValidator
 
 # Create your models here.
+
+
+class CouponDiscount(models.Model):
+    code = models.CharField(max_length=50, unique=True)
+
+    valid_from = models.DateTimeField()
+    valid_until = models.DateTimeField()
+
+    discount_percent = models.IntegerField(
+        validators=[MinValueValidator(0), MaxValueValidator(100)]
+    )
+
+    active = models.BooleanField()
+
+    def __str__(self):
+        return f'{self.code}: {self.discount_percent}'
 
 
 class Province(models.Model):
@@ -248,6 +265,9 @@ class Product(models.Model):
 
     product_is_active = models.BooleanField(default=False)
 
+    datetime_created = models.DateTimeField(auto_now_add=True)
+    datetime_modified = models.DateTimeField(auto_now=True)
+
     def __str__(self):
         return f'{self.base_product.title_farsi} - {self.color} - {self.size}'
     
@@ -276,6 +296,9 @@ class ProductComment(models.Model):
 
     datetime_created = models.DateTimeField(auto_now_add=True)
 
+    class Meta:
+        ordering = ('-datetime_created', )
+
 
 class ProductAnswerComment(models.Model):
     comment = models.ForeignKey(ProductComment, on_delete=models.CASCADE, related_name='answers')
@@ -284,10 +307,17 @@ class ProductAnswerComment(models.Model):
     text = models.TextField()
     datetime_created = models.DateTimeField(auto_now_add=True)
 
+    class Meta:
+        ordering = ('-datetime_created', )
+
 
 class Cart(models.Model):
     id = models.UUIDField(primary_key=True, default=uuid4)
     created_at = models.DateTimeField(auto_now_add=True)
+    
+    coupon_discount = models.BooleanField(default=False)
+    coupon_discount_percent = models.IntegerField(null=True, blank=True)
+    amount_discount = models.IntegerField(null=True, blank=True)
 
     def get_total_price_of_cart(self):
         return sum(item.product.price * item.quantity for item in self.items.all())
@@ -299,6 +329,9 @@ class Cart(models.Model):
                 result = self.get_total_price_of_cart() - sum(item.quantity * item.product.price_after_discount for item in self.items.all())
                 return result
             result = self.get_total_price_of_cart()
+        
+        if self.coupon_discount_percent and self.amount_discount:
+            result = result - self.amount_discount
         return result
 
 
@@ -375,6 +408,7 @@ class Order(models.Model):
     post_code = models.CharField(max_length=10)
     identification_code = models.CharField(max_length=55)
 
+    discount_percent = models.IntegerField(null=True, blank=True)
     total_price = models.IntegerField(null=True)
 
     datetime_created = models.DateTimeField(auto_now_add=True)

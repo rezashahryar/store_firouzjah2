@@ -30,6 +30,9 @@ NUM_ANSWER_COMMENT_OF_PRODUCT = 100
 
 class Command(BaseCommand):
 
+    # def add_arguments(self, parser) -> None:
+    #     parser.add_argument('enter', nargs='+', type=int)
+
     @transaction.atomic()
     def handle(self, *args, **kwargs):
         self.stdout.write('deleting old data...')

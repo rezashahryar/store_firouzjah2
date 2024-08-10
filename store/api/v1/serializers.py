@@ -268,18 +268,18 @@ class CartItemSerializer(serializers.ModelSerializer):
 class CartSerializer(serializers.ModelSerializer):
     items = CartItemSerializer(many=True, read_only=True)
     total_price_of_cart = serializers.SerializerMethodField()
-    amount_discount = serializers.SerializerMethodField()
+    amount_discount_products = serializers.SerializerMethodField()
     amount_payable = serializers.SerializerMethodField()
 
     class Meta:
         model = models.Cart
-        fields = ['id', 'items', 'total_price_of_cart', 'amount_discount', 'amount_payable']
+        fields = ['id', 'items', 'total_price_of_cart', 'coupon_discount_percent', 'amount_discount_products', 'amount_payable']
         read_only_fields = ['id']
 
     def get_total_price_of_cart(self, cart):
         return sum(item.product.price * item.quantity for item in cart.items.all())
     
-    def get_amount_discount(self, cart):
+    def get_amount_discount_products(self, cart):
         amount_discount = 0
         for item in cart.items.all():
             if item.product.price_after_discount:
@@ -292,7 +292,10 @@ class CartSerializer(serializers.ModelSerializer):
             if item.product.discount_percent:
                 result = self.get_total_price_of_cart(cart) - sum(item.quantity * item.product.price_after_discount for item in cart.items.all())
                 return result
-            result = self.get_total_price_of_cart(cart) - sum(item.quantity * item.product.price for item in cart.items.all())
+            result = self.get_total_price_of_cart(cart)
+
+        if cart.coupon_discount_percent and cart.amount_discount and cart.coupon_discount:
+            result = result - cart.amount_discount
         return result
     
 
@@ -378,7 +381,6 @@ class CreateOrderSerializer(serializers.Serializer):
     time = serializers.IntegerField()
 
     def validate_cart_id(self, cart_id):
-        print(cart_id)
         try:
             if models.Cart.objects.prefetch_related('items').get(id=cart_id).items.count() == 0:
                 raise serializers.ValidationError('your cart is empty')
@@ -402,8 +404,6 @@ class CreateOrderSerializer(serializers.Serializer):
 
             customer = models.Customer.objects.get(user_id=user_id)
             cart = models.Cart.objects.get(pk=cart_id)
-            print('+=' * 40)
-            print(cart)
 
             order = models.Order(
                 customer=customer,
@@ -419,7 +419,8 @@ class CreateOrderSerializer(serializers.Serializer):
                 identification_code=data['identification_code'],
                 date_id=data['date'],
                 time_id=data['time'],
-                total_price=cart.get_amount_payable()
+                total_price=cart.get_amount_payable(),
+                discount_percent=cart.coupon_discount_percent
             )
             order.save()
 
@@ -543,7 +544,10 @@ class SameProductDetailSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = models.Product
-        fields = ['id', 'title_farsi', 'slug', 'send_method', 'price', 'price_after_discount', 'discount_percent', 'end_discount']
+        fields = [
+            'id', 'title_farsi', 'slug', 'send_method', 'price', 'price_after_discount',
+            'discount_percent', 'end_discount', 'datetime_created',
+        ]
 
 
 class SameProductsListSerializer(serializers.ModelSerializer):
@@ -581,3 +585,31 @@ class ContactUsSerializer(serializers.ModelSerializer):
         model = models.ContactUs
         fields = ['id', 'full_name', 'mobile', 'email', 'subject', 'text', 'tracking_code']
         read_only_fields = ['tracking_code']
+
+
+class CouponDiscountSerializer(serializers.Serializer):
+    cart_id = serializers.UUIDField()
+    code = serializers.CharField(max_length=50)
+
+    def validate_code(self, code):
+        try:
+            coupon = models.CouponDiscount.objects.get(code=code)
+        except models.CouponDiscount.DoesNotExist:
+            raise serializers.ValidationError('این کد معتبر نمی باشد')
+        
+        return code
+        
+    def validate_cart_id(self, cart_id):
+        try:
+            if models.Cart.objects.prefetch_related('items').get(id=cart_id).items.count() == 0:
+                raise serializers.ValidationError('your cart is empty')
+        except models.Cart.DoesNotExist:
+            raise serializers.ValidationError('there is not cart with this cart id')
+
+        # if not models.Cart.objects.filter(id=cart_id).exists():
+        #     raise serializers.ValidationError('there is not cart with this cart id')
+        
+        # if models.CartItem.objects.filter(cart_id=cart_id).count() == 0:
+        #     raise serializers.ValidationError('your cart is empty')
+        
+        return cart_id

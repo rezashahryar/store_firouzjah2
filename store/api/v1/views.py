@@ -1,3 +1,4 @@
+from decimal import Decimal
 from django.db.models import Prefetch
 from rest_framework.viewsets import GenericViewSet, ModelViewSet
 from rest_framework import mixins
@@ -5,6 +6,7 @@ from rest_framework.response import Response
 from rest_framework import generics
 from django_filters.rest_framework import DjangoFilterBackend
 from rest_framework.permissions import IsAuthenticated, IsAdminUser
+from rest_framework import status
 
 from store import models
 
@@ -25,6 +27,7 @@ class ProductViewSet(mixins.ListModelMixin,
         serializer = self.get_serializer(instance)
         colors = models.Color.objects.filter(products__base_product=instance.base_product).values('products__slug', 'products__color')
         return Response({
+            'lowest_price_on_the_size': "salam",
             'product_colors': serializers.ColorSerializer(colors, many=True, context={'instance_pk': instance.pk}).data,
             'product': serializer.data,
         })
@@ -188,12 +191,13 @@ class ListSameProductApiView(generics.ListAPIView):
     def get_queryset(self):
         pk = self.kwargs['pk']
         base_product_obj = models.BaseProduct.objects.get(pk=pk)
-        return models.SameProduct.objects.filter(
+        return models.SameProduct.objects.select_related('product__base_product__sub_category').filter(
             product__base_product__category=base_product_obj.category,
             product__base_product__sub_category=base_product_obj.sub_category,
             product__base_product__brand=base_product_obj.brand,
-        )
-    
+            product__base_product__product_type_id=base_product_obj.product_type.id
+        ).exclude(store_id=base_product_obj.store.pk)
+
 
 class SendReportProduct(generics.CreateAPIView):
     serializer_class = serializers.ReportproductSerializer
@@ -201,3 +205,27 @@ class SendReportProduct(generics.CreateAPIView):
 
 class ContactUsApiView(generics.CreateAPIView):
     serializer_class = serializers.ContactUsSerializer
+
+
+class ApplyCouponDiscount(generics.GenericAPIView):
+    serializer_class = serializers.CouponDiscountSerializer
+
+    def post(self, request):
+        serializer = serializers.CouponDiscountSerializer(data=request.data)
+        serializer.is_valid(raise_exception=True)
+
+        cart_id = serializer.validated_data['cart_id']
+        coupon_code = serializer.validated_data['code']
+
+        cart_obj = models.Cart.objects.get(id=cart_id)
+        coupon_obj = models.CouponDiscount.objects.get(code=coupon_code)
+
+        amount_payable = cart_obj.get_amount_payable()
+        amount_discount = coupon_obj.discount_percent / Decimal(100) * amount_payable
+
+        cart_obj.amount_discount = amount_discount
+        cart_obj.coupon_discount_percent = coupon_obj.discount_percent
+        cart_obj.coupon_discount = True
+        cart_obj.save()
+
+        return Response(status=status.HTTP_200_OK)

@@ -119,7 +119,7 @@ class NeighbourhoodAdmin(admin.ModelAdmin):
 
 class OrderItemTabular(admin.TabularInline):
     model = models.OrderItem
-    fields = ['product', 'quantity', 'price']
+    fields = ['product', 'quantity', 'purchased_price']
 
 
 @admin.register(models.Order)
@@ -151,6 +151,11 @@ class StoreAdmin(admin.ModelAdmin):
 
 @admin.register(models.HaghighyStore)
 class HaghighyStoreAdmin(admin.ModelAdmin):
+    ...
+
+
+@admin.register(models.CouponDiscount)
+class CouponDiscount(admin.ModelAdmin):
     ...
 
 
