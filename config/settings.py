@@ -51,8 +51,7 @@ INSTALLED_APPS = [
     # local apps
     'core.apps.CoreConfig',
     'store.apps.StoreConfig',
-    'user_panel.apps.UserPanelConfig',
-    'admin_panel.apps.AdminPanelConfig',
+    'panel.apps.PanelConfig',
 ]
 
 MIDDLEWARE = [
@@ -157,8 +156,8 @@ REST_FRAMEWORK = {
     'DEFAULT_AUTHENTICATION_CLASSES': [
         'rest_framework.authentication.TokenAuthentication',
     ],
-    'DEFAULT_PAGINATION_CLASS': 'rest_framework.pagination.LimitOffsetPagination',
-    'PAGE_SIZE': 50
+    # 'DEFAULT_PAGINATION_CLASS': 'rest_framework.pagination.LimitOffsetPagination',
+    # 'PAGE_SIZE': 50
 }
 
 

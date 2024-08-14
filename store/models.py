@@ -381,6 +381,11 @@ class OrderTime(models.Model):
 
     def __str__(self):
         return str(self.time)
+    
+
+def generate_tracking_code_order():
+    code = random.randint(100000000, 999999999)
+    return code
 
 
 class Order(models.Model):
@@ -410,6 +415,8 @@ class Order(models.Model):
 
     discount_percent = models.IntegerField(null=True, blank=True)
     total_price = models.IntegerField(null=True)
+
+    tracking_code = models.IntegerField(default=generate_tracking_code_order)
 
     datetime_created = models.DateTimeField(auto_now_add=True)
     order_status = models.CharField(max_length=2, choices=OrderStatus.choices, default=OrderStatus.CURRENT_ORDERS)

@@ -1,3 +1,4 @@
+from decimal import Decimal
 from rest_framework import serializers
 from django.db import transaction
 from django.utils import timezone
@@ -5,6 +6,43 @@ from django.utils import timezone
 from store import models
 
 # create your serializers here
+
+
+class SubCategorySerializer(serializers.ModelSerializer):
+
+    class Meta:
+        model = models.SubCategoryProduct
+        fields = ['id', 'name', 'slug', 'logo']
+
+
+class CategorySerializer(serializers.ModelSerializer):
+    sub_categories = SubCategorySerializer(many=True)
+
+    class Meta:
+        model = models.CategoryProduct
+        fields = ['id', 'name', 'slug', 'logo', 'sub_categories']
+
+
+class BaseProductOfCategorySerializer(serializers.ModelSerializer):
+    category = serializers.StringRelatedField()
+
+    class Meta:
+        model = models.BaseProduct
+        fields = [
+            'id', 'title_farsi', 'category'
+        ]
+
+
+class ProductsOfCategorySerializer(serializers.ModelSerializer):
+    base_product = BaseProductOfCategorySerializer()
+
+    class Meta:
+        model = models.Product
+        fields = [
+            'id', 'base_product', 'slug', 'end_discount', 'discount_percent',
+            'price', 'price_after_discount'
+        ]
+
 
 class ProductSlugSerializer(serializers.Serializer):
     slug = serializers.Serializer()
@@ -223,10 +261,11 @@ class CartItemBaseProductImageSerializer(serializers.ModelSerializer):
 
 
 class CartItemBaseProductSerializer(serializers.ModelSerializer):
+    store_code = serializers.CharField(source='store.code')
 
     class Meta:
         model = models.BaseProduct
-        fields = ['title_farsi', 'images']
+        fields = ['title_farsi', 'product_code', 'store_code', 'images']
 
     def to_representation(self, instance):
         rep = super().to_representation(instance)
@@ -241,10 +280,15 @@ class CartItemBaseProductSerializer(serializers.ModelSerializer):
 
 class CartItemProductSerializer(serializers.ModelSerializer):
     base_product = CartItemBaseProductSerializer()
+    color = serializers.StringRelatedField()
+    amount_discount = serializers.SerializerMethodField()
 
     class Meta:
         model = models.Product
-        fields = ['id', 'base_product', 'slug', 'price', 'price_after_discount']
+        fields = ['id', 'base_product', 'color', 'slug', 'price', 'price_after_discount', 'amount_discount']
+
+    def get_amount_discount(self, product):
+        return int(product.price * (product.discount_percent / Decimal(100)))
 
     # def to_representation(self, instance):
     #     rep = super().to_representation(instance)
@@ -274,7 +318,7 @@ class CartSerializer(serializers.ModelSerializer):
     class Meta:
         model = models.Cart
         fields = ['id', 'items', 'total_price_of_cart', 'coupon_discount_percent', 'amount_discount_products', 'amount_payable']
-        read_only_fields = ['id']
+        read_only_fields = ['id', 'coupon_discount_percent']
 
     def get_total_price_of_cart(self, cart):
         return sum(item.product.price * item.quantity for item in cart.items.all())
@@ -335,7 +379,7 @@ class OrderForAdminSerializer(serializers.ModelSerializer):
         fields = [
             'id', 'customer', 'order_status', 'status_paid', 'receiver_full_name', 'receiver_mobile', 'province', 'city',
             'neighbourhood', 'region', 'house_num', 'vahed', 'post_code', 'identification_code'
-            'datetime_created', 'items'
+            'datetime_created', 'tracking_code', 'items'
         ]
 
 
@@ -355,7 +399,7 @@ class OrderForUserSerializer(serializers.ModelSerializer):
         fields = [
             'id', 'order_status', 'status_paid', 'receiver_full_name', 'receiver_mobile', 'province', 'city', 'neighbourhood',
             'region', 'house_num', 'vahed', 'post_code', 'identification_code', 'date', 'time',
-            'datetime_created', 'total_price', 'items'
+            'datetime_created', 'tracking_code', 'total_price', 'items'
         ]
 
     def get_status_paid(self, order):
@@ -394,6 +438,21 @@ class CreateOrderSerializer(serializers.Serializer):
         #     raise serializers.ValidationError('your cart is empty')
         
         return cart_id
+    
+    def validate(self, attrs):
+        date_pk = attrs['date']
+        try:
+            date_obj = models.OrderDate.objects.get(pk=date_pk)
+        except models.Province.DoesNotExist:
+            raise serializers.ValidationError('لطفا آیدی معتبر وارد کنید')
+
+        # validation id of time
+        time_pk = attrs['time']
+        try:
+            time_obj = models.OrderTime.objects.get(pk=time_pk)
+        except models.Province.DoesNotExist:
+            raise serializers.ValidationError('لطفا آیدی معتبر وارد کنید')
+        return attrs
     
     def save(self, **kwargs):
         with transaction.atomic():
@@ -613,3 +672,24 @@ class CouponDiscountSerializer(serializers.Serializer):
         #     raise serializers.ValidationError('your cart is empty')
         
         return cart_id
+    
+
+class ProvinceSerializer(serializers.ModelSerializer):
+
+    class Meta:
+        model = models.Province
+        fields = ['name']
+
+
+class CitySerializer(serializers.ModelSerializer):
+
+    class Meta:
+        model = models.City
+        fields = ['name']
+
+
+class neighbourhoodSerializer(serializers.ModelSerializer):
+
+    class Meta:
+        model = models.Neighbourhood
+        fields = ['name']

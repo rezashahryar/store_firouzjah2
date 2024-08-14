@@ -16,6 +16,8 @@ cart_items_router.register('items', views.CartItemViewSet, basename='cart_item')
 
 
 urlpatterns = [
+    path('categories/', views.CategoryListApiView.as_view(), name='category-list'),
+    path('products/category/<int:category_pk>/', views.ProductsOfCategoryListApiView.as_view(), name='products-category'),
     path('contact-us/', views.ContactUsApiView.as_view(), name='contact-us'),
     path('send-report-product/', views.SendReportProduct.as_view(), name='send_report_product'),
     path('same-products/<int:pk>/', views.ListSameProductApiView.as_view(), name='same-products'),
@@ -26,6 +28,9 @@ urlpatterns = [
     path('apply/coupon/discount/', views.ApplyCouponDiscount.as_view(), name='coupon'),
     path('create/product-comment/', views.CreateProductCommentApiView.as_view(), name='create-product-comment'),
     path('create/product-answer-comment/', views.CreateProductAnswerCommentApiView.as_view(), name='create-product-answer-comment'),
+    path('province/list/', views.ProvinceListApiView.as_view(), name='province_list'),
+    path('city/list/<int:province_pk>/', views.CityListApiView.as_view(), name='city_list'),
+    path('neighbourhood/list/<int:city_pk>/', views.NeighbourhoodListApiView.as_view(), name='neighbourhood_list'),
     path('', include(router.urls)),
     path('', include(cart_items_router.urls)),
 ]
