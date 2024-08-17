@@ -167,6 +167,16 @@ class Brand(models.Model):
 
     def __str__(self):
         return self.name
+    
+
+def random_code_base_product():
+
+    while True:
+        code = random.randint(10000, 99999)
+
+        if Store.objects.filter(code=code).exists():
+            continue
+        return code
 
 
 class BaseProduct(models.Model):
@@ -184,7 +194,7 @@ class BaseProduct(models.Model):
     category = models.ForeignKey(CategoryProduct, on_delete=models.CASCADE, related_name='products')
     sub_category = models.ForeignKey(SubCategoryProduct, on_delete=models.CASCADE, related_name='products')
     product_type = models.ForeignKey(ProductType, on_delete=models.CASCADE, related_name='products', null=True)
-    product_code = models.CharField(max_length=10)
+    product_code = models.CharField(max_length=10, default=random_code_base_product)
 
     brand = models.ForeignKey(Brand, on_delete=models.CASCADE, related_name='products')
 
