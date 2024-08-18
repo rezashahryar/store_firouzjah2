@@ -211,7 +211,7 @@ class BaseProduct(models.Model):
     datetime_modified = models.DateTimeField(auto_now=True)
 
     class Meta:
-        ordering = ('datetime_created', )
+        ordering = ('-datetime_created', )
 
     def __str__(self):
         return self.title_farsi

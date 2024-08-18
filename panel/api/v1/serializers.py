@@ -50,6 +50,12 @@ class CreateBaseProductSerializer(serializers.ModelSerializer):
             'title_farsi', 'title_english', 'product_authenticity', 'product_warranty', 'sending_method'
         ]
 
+    def create(self, validated_data):
+        return store_models.BaseProduct.objects.create(
+            store_id=self.context['store_id'],
+            **validated_data
+        )
+
     # def to_representation(self, instance):
     #     rep = super().to_representation(instance)
     #     rep['category'] = CategorySerializer(instance.category).data
@@ -64,3 +70,39 @@ class CreateBaseProductSerializer(serializers.ModelSerializer):
     
     # # def get_product_authenticity(self, base_product):
     # #     return base_product.get_product_authenticity_display
+
+
+class CreateProductSerializer(serializers.ModelSerializer):
+
+    class Meta:
+        model = store_models.Product
+        fields = [
+            'size', 'color', 'inventory', 'unit', 'price', 'price_after_discount', 'discount_percent',
+            'start_discount', 'end_discount', 'length_package', 'width_package', 'height_package', 'weight_package',
+            'shenase_kala', 'barcode'
+        ]
+
+    def create(self, validated_data):
+        return store_models.Product.objects.create(
+            base_product_id=1015,
+            **validated_data
+        )
+
+
+class BaseProductSerializer(serializers.ModelSerializer):
+
+    class Meta:
+        model = store_models.BaseProduct
+        fields = [
+            'id', 'title_farsi'
+        ]
+
+
+class ProductSerializer(serializers.ModelSerializer):
+    base_product = BaseProductSerializer()
+
+    class Meta:
+        model = store_models.Product
+        fields = [
+            'id', 'base_product', 'size', 'color'
+        ]
