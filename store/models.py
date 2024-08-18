@@ -196,6 +196,7 @@ class BaseProduct(models.Model):
     product_type = models.ForeignKey(ProductType, on_delete=models.CASCADE, related_name='products', null=True)
     product_code = models.CharField(max_length=10, default=random_code_base_product)
 
+    model = models.CharField(max_length=255, null=True)
     brand = models.ForeignKey(Brand, on_delete=models.CASCADE, related_name='products')
 
     title_farsi = models.CharField(max_length=255)
@@ -205,6 +206,12 @@ class BaseProduct(models.Model):
     product_authenticity = models.CharField(max_length=2, choices=ProductAuthenticity.choices)
     product_warranty = models.BooleanField(default=True)
     sending_method = models.CharField(max_length=2, choices=SendingMethod.choices)
+
+    datetime_created = models.DateTimeField(auto_now_add=True)
+    datetime_modified = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        ordering = ('datetime_created', )
 
     def __str__(self):
         return self.title_farsi
