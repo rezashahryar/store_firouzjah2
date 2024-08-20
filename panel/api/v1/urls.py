@@ -8,6 +8,7 @@ from . import views
 router = DefaultRouter()
 
 router.register('product', views.ProductViewSet, basename='product')
+router.register('product-image', views.ProductImageViewSet, basename='product-images')
 
 urlpatterns = [
     path('profile/', views.ProfileApiView.as_view(), name='profile'),

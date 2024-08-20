@@ -38,7 +38,13 @@ class ProductViewSet(ModelViewSet):
 
     def create(self, request, *args, **kwargs):
         many = True if isinstance(request.data, list) else False
-        serializer = serializers.CreateProductSerializer(data=request.data, many=many)
+        serializer = serializers.CreateProductSerializer(
+            data=request.data,
+            many=many,
+            context={
+                'base_product_id': request.data['base_product_id']
+            }
+        )
         serializer.is_valid(raise_exception=True)
         serializer.save()
         return Response(serializer.data, status=status.HTTP_201_CREATED)
@@ -47,3 +53,9 @@ class ProductViewSet(ModelViewSet):
         if self.request.method == 'POST':
             return serializers.CreateProductSerializer
         return serializers.ProductSerializer
+    
+
+class ProductImageViewSet(ModelViewSet):
+    queryset = store_models.ProductImage.objects.all()
+    serializer_class = serializers.ProductImageSerializer
+    permission_classes = [IsAuthenticated, HasStore]

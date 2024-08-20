@@ -82,9 +82,20 @@ class CreateProductSerializer(serializers.ModelSerializer):
             'shenase_kala', 'barcode'
         ]
 
+    def validate(self, attrs):
+        base_product_id = self.context['base_product_id']
+        try:
+            base_product_obj = store_models.BaseProduct.objects.get(pk=base_product_id)
+            if base_product_obj:
+                ...
+        except store_models.BaseProduct.DoesNotExist:
+            raise serializers.ValidationError('please enter a valid base product id, base product obj with this id does not exist')
+
+        return attrs
+
     def create(self, validated_data):
         return store_models.Product.objects.create(
-            base_product_id=1015,
+            base_product_id=self.context['base_product_id'],
             **validated_data
         )
 
@@ -105,4 +116,13 @@ class ProductSerializer(serializers.ModelSerializer):
         model = store_models.Product
         fields = [
             'id', 'base_product', 'size', 'color'
+        ]
+
+
+class ProductImageSerializer(serializers.ModelSerializer):
+
+    class Meta:
+        model = store_models.ProductImage
+        fields = [
+            'id', 'product', 'image', 'is_cover'
         ]
