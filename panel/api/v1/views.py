@@ -59,3 +59,9 @@ class ProductImageViewSet(ModelViewSet):
     queryset = store_models.ProductImage.objects.all()
     serializer_class = serializers.ProductImageSerializer
     permission_classes = [IsAuthenticated, HasStore]
+
+
+class ShipingCostViewSet(ModelViewSet):
+    queryset = models.ShipingCost.objects.all()
+    serializer_class = serializers.ShipingCostSerializer
+    permission_classes = [IsAuthenticated, HasStore]

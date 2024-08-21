@@ -1,6 +1,6 @@
 from rest_framework import serializers
 
-from panel.models import Profile
+from panel import models
 from store import models as store_models
 
 # create your serializers here
@@ -9,7 +9,7 @@ from store import models as store_models
 class ProfileSerializer(serializers.ModelSerializer):
 
     class Meta:
-        model = Profile
+        model = models.Profile
         fields = ['full_name', 'email', 'mobile']
 
 
@@ -126,3 +126,41 @@ class ProductImageSerializer(serializers.ModelSerializer):
         fields = [
             'id', 'product', 'image', 'is_cover'
         ]
+
+
+class SendingMethodSerializer(serializers.ModelSerializer):
+
+    class Meta:
+        model = models.SendingMethod
+        fields = ['id', 'name']
+
+
+class OriginSerializer(serializers.ModelSerializer):
+
+    class Meta:
+        model = store_models.Province
+        fields = ['id', 'name']
+
+
+class DestinationSerializer(serializers.ModelSerializer):
+
+    class Meta:
+        model = store_models.Province
+        fields = ['id', 'name']
+
+
+class ShipingCostSerializer(serializers.ModelSerializer):
+
+    class Meta:
+        model = models.ShipingCost
+        fields = [
+            'id', 'sending_method', 'origin', 'destination', 'cost'
+        ]
+
+    def to_representation(self, instance):
+        rep = super().to_representation(instance)
+        rep['sending_method'] = SendingMethodSerializer(instance.sending_method).data
+        rep['origin'] = OriginSerializer(instance.origin).data
+        rep['destination'] = DestinationSerializer(instance.destination).data
+
+        return rep

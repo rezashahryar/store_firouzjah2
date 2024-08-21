@@ -9,6 +9,7 @@ router = DefaultRouter()
 
 router.register('product', views.ProductViewSet, basename='product')
 router.register('product-image', views.ProductImageViewSet, basename='product-images')
+router.register('shiping-cost', views.ShipingCostViewSet, basename='shiping-cost')
 
 urlpatterns = [
     path('profile/', views.ProfileApiView.as_view(), name='profile'),
