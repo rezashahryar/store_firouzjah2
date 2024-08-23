@@ -1,4 +1,5 @@
 from rest_framework import serializers
+from django.contrib.auth import get_user_model
 
 from panel import models
 from store import models as store_models
@@ -164,3 +165,149 @@ class ShipingCostSerializer(serializers.ModelSerializer):
         rep['destination'] = DestinationSerializer(instance.destination).data
 
         return rep
+    
+
+# class ProductInfoInPanelSerializer(serializers.Serializer):
+#     count_all_products = serializers.SerializerMethodField()
+#     count_approved_products = serializers.SerializerMethodField()
+
+#     def get_count_all_products(self, product):
+#         return store_models.Product.objects.all().count()
+    
+#     def get_count_approved_products(self, product):
+#         return store_models.Product.objects.filter(product_status=store_models.Product.ProductStatus.CONFIRM).count()
+
+
+class ListOrderSerializer(serializers.ModelSerializer):
+    customer = serializers.CharField(source='customer.user')
+
+    class Meta:
+        model = store_models.Order
+        fields = [
+            'id', 'customer', 'tracking_code', 'total_price', 'datetime_created'
+        ]
+
+
+class OrderItemSerializer(serializers.ModelSerializer):
+
+    class Meta:
+        model = store_models.OrderItem
+        fields = ['product', 'quantity', 'purchased_price']
+
+
+class DetailOrderSerializer(serializers.ModelSerializer):
+    items = OrderItemSerializer(many=True)
+    date = serializers.StringRelatedField()
+    time = serializers.StringRelatedField()
+    province = serializers.StringRelatedField()
+    city = serializers.StringRelatedField()
+    neighbourhood = serializers.StringRelatedField()
+    order_status = serializers.CharField(source='get_order_status_display')
+
+    class Meta:
+        model = store_models.Order
+        fields = [
+            'id', 'date', 'time', 'receiver_full_name', 'receiver_mobile', 'province', 'city', 'neighbourhood',
+            'region', 'house_num', 'vahed', 'post_code', 'identification_code', 'discount_percent', 'total_price', 'tracking_code',
+            'datetime_created', 'order_status', 'status_paid', 'items'
+        ]
+
+
+class FavoriteDetailProductSerializer(serializers.ModelSerializer):
+    title = serializers.CharField(source='base_product.title_farsi')
+    category = serializers.CharField(source='base_product.category')
+
+
+    class Meta:
+        model = store_models.Product
+        fields = [
+            'id', 'category', 'title', 'price', 'price_after_discount', 'discount_percent'
+        ]
+
+
+class FavoriteProductSerializer(serializers.ModelSerializer):
+    product = FavoriteDetailProductSerializer()
+
+    class Meta:
+        model = store_models.FavoriteProduct
+        fields = [
+            'id', 'product'
+        ]
+
+
+class LetMeKnowDetailProductSerializer(serializers.ModelSerializer):
+    title = serializers.CharField(source='base_product.title_farsi')
+    category = serializers.CharField(source='base_product.category')
+
+
+    class Meta:
+        model = store_models.Product
+        fields = [
+            'id', 'category', 'title', 'price', 'price_after_discount', 'discount_percent'
+        ]
+
+
+class LetMeKnowProductSerializer(serializers.ModelSerializer):
+    product = LetMeKnowDetailProductSerializer()
+
+    class Meta:
+        model = store_models.FavoriteProduct
+        fields = [
+            'id', 'product'
+        ]
+
+
+class ReviewerSerializer(serializers.ModelSerializer):
+
+    class Meta:
+        model = get_user_model()
+        fields = ['mobile']
+
+
+class AnswerSupprtTicketSerializer(serializers.ModelSerializer):
+    # reviewer = serializers.CharField(source='reviewer.user')
+
+    class Meta:
+        model = models.AnswerSupportTicket
+        fields = ['id', 'reviewer', 'text', 'annex']
+
+    def to_representation(self, instance):
+        rep = super().to_representation(instance)
+        rep['reviewer'] = ReviewerSerializer(instance.reviewer).data
+
+        return rep
+
+    def create(self, validated_data):
+        return models.AnswerSupportTicket.objects.create(
+            reviewer_id=self.context['user_id'],
+            ticket_id=self.context['ticket_id'],
+            **validated_data
+        )
+
+
+class SupportTicketSerializer(serializers.ModelSerializer):
+    answers = AnswerSupprtTicketSerializer(many=True)
+
+    class Meta:
+        model = models.SupportTicket
+        fields = ['id', 'subject', 'text', 'annex', 'answers']
+
+    def create(self, validated_data):
+        user_id = self.context['user_id']
+        return models.SupportTicket.objects.create(
+            user_id=user_id,
+            **validated_data
+        )
+    
+
+class RequestPhotographySerializer(serializers.ModelSerializer):
+    province = serializers.StringRelatedField()
+    city = serializers.StringRelatedField()
+    neighbourhood = serializers.StringRelatedField()
+
+    class Meta:
+        model = store_models.RequestPhotography
+        fields = [
+            'id', 'full_name', 'mobile', 'province', 'city', 'neighbourhood',
+            'mahalle', 'address', 'store_name', 'request_text'
+        ]

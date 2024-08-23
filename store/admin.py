@@ -28,13 +28,30 @@ class ColorAdmin(admin.ModelAdmin):
     ...
 
 
+@admin.register(models.FavoriteProduct)
+class FavoriteProductAdmin(admin.ModelAdmin):
+    ...
+
+
+@admin.register(models.LetMeKnowProduct)
+class LetKnowProductAdmin(admin.ModelAdmin):
+    ...
+
+
 @admin.register(models.Product)
 class ProductAdmin(admin.ModelAdmin):
+    list_display = ['title', 'category', 'size', 'color', 'inventory', 'price', 'product_status', 'product_is_active']
     prepopulated_fields = {"slug": ('base_product', )}
 
     def get_queryset(self, request: HttpRequest) -> QuerySet[Any]:
         return super().get_queryset(request).select_related('size').select_related('color') \
-            .select_related('base_product')
+            .select_related('base_product__category')
+    
+    def title(self, obj):
+        return obj.base_product.title_farsi
+    
+    def category(self, obj):
+        return obj.base_product.category
 
 
 @admin.register(models.ProductProperties)

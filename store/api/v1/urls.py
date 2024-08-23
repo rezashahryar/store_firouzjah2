@@ -16,6 +16,8 @@ cart_items_router.register('items', views.CartItemViewSet, basename='cart_item')
 
 
 urlpatterns = [
+    path('add-lmk-product/', views.LetMeKnowProductApiView.as_view(), name='add-lmk-product'),
+    path('add-favorite-product/', views.AddFavoriteProductApiView.as_view(), name='add_favorite_product'),
     path('categories/', views.CategoryListApiView.as_view(), name='category-list'),
     path('products/category/<int:category_pk>/', views.ProductsOfCategoryListApiView.as_view(), name='products-category'),
     path('contact-us/', views.ContactUsApiView.as_view(), name='contact-us'),

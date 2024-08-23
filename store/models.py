@@ -183,6 +183,8 @@ class BaseProduct(models.Model):
 
     class ProductAuthenticity(models.TextChoices):
         ORIGINAL = 'o', _('اصل ، اوریجینال')
+        HIGH_COPY = 'hc', 'های کپی'
+        COPY = 'c', 'کپی'
 
     class SendingMethod(models.TextChoices):
         TIPAX = 'ti', _('تیپاکس')
@@ -484,3 +486,19 @@ class ContactUs(models.Model):
     subject = models.CharField(max_length=255)
     text = models.TextField()
     tracking_code = models.CharField(max_length=9, unique=True, default=generate_tracking_code)
+
+
+class FavoriteProduct(models.Model):
+    user = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE, related_name='favorite_products')
+    product = models.ForeignKey(Product, on_delete=models.CASCADE, related_name='favorites')
+
+    def __str__(self) -> str:
+        return self.product.base_product.title_farsi
+    
+
+class LetMeKnowProduct(models.Model):
+    user = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE, related_name='lmk_product')
+    product = models.ForeignKey(Product, on_delete=models.CASCADE, related_name='lmk_product')
+
+    def __str__(self) -> str:
+        return self.product.base_product.title_farsi

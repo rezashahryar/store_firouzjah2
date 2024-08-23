@@ -693,3 +693,29 @@ class neighbourhoodSerializer(serializers.ModelSerializer):
     class Meta:
         model = models.Neighbourhood
         fields = ['name']
+
+
+class AddFavoriteProductSerializer(serializers.Serializer):
+    product_id = serializers.IntegerField()
+
+
+class FavoriteProductSerializer(serializers.ModelSerializer):
+    product = serializers.CharField(source='product.base_product.title_farsi')
+    user = serializers.StringRelatedField()
+
+    class Meta:
+        model = models.FavoriteProduct
+        fields = ['user', 'product']
+
+
+class AddLetMeKnowProductSerializer(serializers.Serializer):
+    product_id = serializers.IntegerField()
+
+
+class LetMeKnowProductSerializer(serializers.ModelSerializer):
+    product = serializers.CharField(source='product.base_product.title_farsi')
+    user = serializers.StringRelatedField()
+
+    class Meta:
+        model = models.LetMeKnowProduct
+        fields = ['user', 'product']

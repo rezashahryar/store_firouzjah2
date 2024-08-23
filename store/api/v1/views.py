@@ -7,6 +7,7 @@ from rest_framework import generics
 from django_filters.rest_framework import DjangoFilterBackend
 from rest_framework.permissions import IsAuthenticated, IsAdminUser
 from rest_framework import status
+from rest_framework.views import APIView
 
 from store import models
 
@@ -273,3 +274,37 @@ class NeighbourhoodListApiView(generics.ListAPIView):
     def get_queryset(self):
         city_pk = self.kwargs['city_pk']
         return models.Neighbourhood.objects.filter(city_id=city_pk)
+    
+
+class AddFavoriteProductApiView(generics.GenericAPIView):
+    serializer_class = serializers.AddFavoriteProductSerializer
+    permission_classes = [IsAuthenticated]
+
+    def post(self, request):
+        create_favorite_product_serializer = self.serializer_class(data=request.data)
+        create_favorite_product_serializer.is_valid(raise_exception=True)
+        
+        favorite_product_obj = models.FavoriteProduct.objects.create(
+            user=request.user,
+            product_id=create_favorite_product_serializer.validated_data['product_id']
+        )
+        serializer = serializers.FavoriteProductSerializer(favorite_product_obj)
+
+        return Response(serializer.data, status=status.HTTP_200_OK)
+    
+
+class LetMeKnowProductApiView(generics.GenericAPIView):
+    serializer_class = serializers.AddLetMeKnowProductSerializer
+
+    def post(self, request):
+        create_let_me_know_product_serializer = serializers.AddLetMeKnowProductSerializer(data=request.data)
+        create_let_me_know_product_serializer.is_valid(raise_exception=True)
+
+        lmk_product_obj = models.LetMeKnowProduct.objects.create(
+            user=request.user,
+            product_id=create_let_me_know_product_serializer.validated_data['product_id']
+        )
+
+        serializer = serializers.LetMeKnowProductSerializer(lmk_product_obj)
+
+        return Response(serializer.data, status=status.HTTP_200_OK)
